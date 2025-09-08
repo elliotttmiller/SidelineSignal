@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SidelineSignal - Real-Time Stream Status</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SidelineSignal</h1>
+            <p class="subtitle">Real-Time Stream Status Monitoring</p>
+        </header>
+        
+        <main>
+            <div class="status-table-container">
+                <table class="status-table">
+                    <thead>
+                        <tr>
+                            <th>Website</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for site in statuses %}
+                        <tr>
+                            <td class="website-url">{{ site.url }}</td>
+                            <td class="{% if site.status == 'Operational' %}status-operational{% else %}status-offline{% endif %}">{{ site.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2024 SidelineSignal - Professional Stream Monitoring</p>
+        </footer>
+    </div>
+</body>
+</html>
