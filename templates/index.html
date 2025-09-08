@@ -23,14 +23,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for site in statuses %}
+                        <!-- Status data will be populated dynamically by JavaScript -->
                         <tr>
-                            <td class="website-url">{{ site.url }}</td>
-                            <td class="{% if site.status == 'Operational' %}status-operational{% else %}status-offline{% endif %}">{{ site.status }}</td>
+                            <td colspan="2" class="loading-state">Loading...</td>
                         </tr>
-                        {% endfor %}
                     </tbody>
                 </table>
+                <div class="status-info">
+                    <p id="last-update" class="last-update">Initializing real-time monitoring...</p>
+                </div>
             </div>
         </main>
         
@@ -38,5 +39,8 @@
             <p>&copy; 2024 SidelineSignal - Professional Stream Monitoring</p>
         </footer>
     </div>
+    
+    <!-- Load the real-time JavaScript functionality -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
