@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Status</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Stream Status</h1>
+            <p>Monitor the status of streaming services</p>
+        </header>
+        
+        <main>
+            <table class="status-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>https://www.google.com</td>
+                        <td>Operational</td>
+                    </tr>
+                    <tr>
+                        <td>https://imethstreams.app</td>
+                        <td>Operational</td>
+                    </tr>
+                    <tr>
+                        <td>https://this-is-a-non-existent-domain12345.com</td>
+                        <td>Offline</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+</body>
+</html>
