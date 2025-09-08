@@ -2,28 +2,47 @@ from flask import Flask, render_template, jsonify
 import requests
 from requests.exceptions import RequestException
 import concurrent.futures
-import json
+import sqlite3
 import os
 import time
 from datetime import datetime
 
 app = Flask(__name__)
 
-# Global variables for configuration and status tracking
-TARGET_WEBSITES = []
+# Global variables for status tracking
 last_known_status = {}
 
-def load_config():
-    """Load target websites from config.json"""
-    global TARGET_WEBSITES
-    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+def load_sites_from_database():
+    """Load active target websites from the shared sites database"""
+    db_path = os.path.join(os.path.dirname(__file__), '..', 'shared_data', 'sites.db')
+    db_path = os.path.abspath(db_path)
+    
     try:
-        with open(config_path, 'r') as f:
-            TARGET_WEBSITES = json.load(f)
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Query for active sites
+        cursor.execute("SELECT name, url FROM sites WHERE is_active = 1")
+        sites = [{"name": row[0], "url": row[1]} for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        if sites:
+            print(f"Loaded {len(sites)} active sites from database")
+            return sites
+        else:
+            print("No active sites found in database, using fallback configuration")
+            # Fallback to default configuration if no sites in database
+            return [
+                {"name": "Google", "url": "https://www.google.com"},
+                {"name": "iMethStreams", "url": "https://imethstreams.app"},
+                {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com"}
+            ]
+            
     except Exception as e:
-        print(f"Error loading config.json: {e}")
+        print(f"Error loading sites from database: {e}")
         # Fallback to default configuration
-        TARGET_WEBSITES = [
+        return [
             {"name": "Google", "url": "https://www.google.com"},
             {"name": "iMethStreams", "url": "https://imethstreams.app"},
             {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com"}
@@ -41,8 +60,7 @@ def log_status_change(url, old_status, new_status, reason):
     except Exception as e:
         print(f"Error writing to log file: {e}")
 
-# Load configuration on startup
-load_config()
+# This function is no longer needed - sites are loaded dynamically from database
 
 def check_website_status(site_config):
     """
@@ -133,12 +151,15 @@ def check_website_status(site_config):
 @app.route('/api/statuses')
 def api_statuses():
     """JSON API endpoint that performs concurrent status checks with enriched data."""
+    # Load current active sites from database
+    target_websites = load_sites_from_database()
+    
     statuses = []
     
     # Use ThreadPoolExecutor for concurrent status checking
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(TARGET_WEBSITES)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(target_websites)) as executor:
         # Submit all status check tasks
-        future_to_site = {executor.submit(check_website_status, site): site for site in TARGET_WEBSITES}
+        future_to_site = {executor.submit(check_website_status, site): site for site in target_websites}
         
         # Collect results as they complete
         for future in concurrent.futures.as_completed(future_to_site):
