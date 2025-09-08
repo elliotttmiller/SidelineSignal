@@ -14,7 +14,7 @@ async function fetchStatuses() {
     
     try {
         // Show loading state
-        statusTableBody.innerHTML = '<tr><td colspan="2" class="loading-state">Loading status updates...</td></tr>';
+        statusTableBody.innerHTML = '<tr><td colspan="4" class="loading-state">Loading status updates...</td></tr>';
         
         // Fetch status data from concurrent API endpoint
         const response = await fetch('/api/statuses');
@@ -29,10 +29,16 @@ async function fetchStatuses() {
         let tableHTML = '';
         statuses.forEach(site => {
             const statusClass = site.status === 'Operational' ? 'status-operational' : 'status-offline';
+            const latencyClass = getLatencyClass(site.response_time);
+            const latencyText = `${site.response_time} ms`;
+            const statusCodeText = getStatusCodeDisplay(site);
+            
             tableHTML += `
                 <tr>
-                    <td class="website-url">${site.url}</td>
+                    <td class="website-name">${site.name}</td>
                     <td class="${statusClass}">${site.status}</td>
+                    <td class="${latencyClass}">${latencyText}</td>
+                    <td class="status-code">${statusCodeText}</td>
                 </tr>
             `;
         });
@@ -43,12 +49,61 @@ async function fetchStatuses() {
         // Update last updated timestamp
         updateLastRefreshTime();
         
+        // Update page title with service status
+        updatePageTitle(statuses);
+        
     } catch (error) {
         console.error('Error fetching statuses:', error);
         // Show error state
-        statusTableBody.innerHTML = '<tr><td colspan="2" class="error-state">Error loading status data. Retrying...</td></tr>';
+        statusTableBody.innerHTML = '<tr><td colspan="4" class="error-state">Error loading status data. Retrying...</td></tr>';
     } finally {
         isLoading = false;
+    }
+}
+
+/**
+ * Gets the appropriate CSS class for latency color coding
+ */
+function getLatencyClass(responseTime) {
+    if (responseTime < 500) {
+        return 'latency-fast';
+    } else if (responseTime <= 1500) {
+        return 'latency-moderate';
+    } else {
+        return 'latency-slow';
+    }
+}
+
+/**
+ * Gets the display text for status code column
+ */
+function getStatusCodeDisplay(site) {
+    if (site.status === 'Operational') {
+        return site.status_code.toString();
+    } else {
+        // For offline services, show error reason instead of status code
+        if (site.error) {
+            return site.error;
+        } else if (site.status_code === 0) {
+            return 'Connection Failed';
+        } else {
+            return `HTTP ${site.status_code}`;
+        }
+    }
+}
+
+/**
+ * Updates the page title with current system status
+ */
+function updatePageTitle(statuses) {
+    const offlineCount = statuses.filter(site => site.status === 'Offline').length;
+    
+    if (offlineCount === 0) {
+        document.title = 'SidelineSignal (All Systems Operational)';
+    } else if (offlineCount === 1) {
+        document.title = 'SidelineSignal (1 Service Offline)';
+    } else {
+        document.title = `SidelineSignal (${offlineCount} Services Offline)`;
     }
 }
 

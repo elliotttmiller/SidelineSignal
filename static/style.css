@@ -101,11 +101,11 @@ main {
     border-bottom: none;
 }
 
-.website-url {
-    font-family: 'Monaco', 'Consolas', monospace;
-    font-size: 0.9rem;
-    color: #D0D0D0;
-    word-break: break-all;
+.website-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    color: #E0E0E0;
+    font-weight: 500;
 }
 
 /* Status indicator styles - Core Protocol compliance */
@@ -131,6 +131,29 @@ main {
     content: "●";
     margin-right: 8px;
     font-size: 1.2rem;
+}
+
+/* Latency color coding */
+.latency-fast {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.latency-moderate {
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.latency-slow {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+/* Status code column styling */
+.status-code {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #C0C0C0;
 }
 
 /* Loading and error states */
