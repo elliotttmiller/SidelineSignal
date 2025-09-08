@@ -1,6 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import requests
 from requests.exceptions import RequestException
+import concurrent.futures
 
 app = Flask(__name__)
 
@@ -42,16 +43,35 @@ def check_website_status(url):
         'status': status
     }
 
-@app.route('/')
-def index():
-    """Main route that checks website statuses and renders the template."""
+@app.route('/api/statuses')
+def api_statuses():
+    """JSON API endpoint that performs concurrent status checks."""
     statuses = []
     
-    for website in TARGET_WEBSITES:
-        status_info = check_website_status(website)
-        statuses.append(status_info)
+    # Use ThreadPoolExecutor for concurrent status checking
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(TARGET_WEBSITES)) as executor:
+        # Submit all status check tasks
+        future_to_url = {executor.submit(check_website_status, url): url for url in TARGET_WEBSITES}
+        
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_url):
+            try:
+                status_info = future.result(timeout=10)  # 10 second timeout per check
+                statuses.append(status_info)
+            except Exception as exc:
+                url = future_to_url[future]
+                # Handle timeout or other exceptions gracefully
+                statuses.append({
+                    'url': url,
+                    'status': 'Offline'
+                })
     
-    return render_template('index.html', statuses=statuses)
+    return jsonify(statuses)
+
+@app.route('/')
+def index():
+    """Main route that serves the application shell."""
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,4 +1,5 @@
-/* SidelineSignal - Professional Status Page Styling */
+/* SidelineSignal - Professional Dark Theme UI */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 * {
     margin: 0;
@@ -7,16 +8,17 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Poppins', sans-serif;
+    background: #111;
     min-height: 100vh;
-    color: #333;
+    color: #F0F0F0;
+    line-height: 1.6;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 40px 20px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -30,16 +32,16 @@ header {
 
 h1 {
     font-size: 3rem;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #F0F0F0;
     margin-bottom: 10px;
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
     font-size: 1.2rem;
-    color: #f8f9fa;
-    opacity: 0.9;
+    color: #B0B0B0;
+    font-weight: 300;
 }
 
 main {
@@ -50,13 +52,16 @@ main {
 }
 
 .status-table-container {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    background: #1C1C1C;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     width: 100%;
-    max-width: 800px;
-    backdrop-filter: blur(10px);
+    transition: box-shadow 0.3s ease;
+}
+
+.status-table-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 .status-table {
@@ -65,30 +70,31 @@ main {
 }
 
 .status-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #2A2A2A;
 }
 
 .status-table th,
 .status-table td {
     padding: 20px;
     text-align: left;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid #333;
 }
 
 .status-table th {
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: #F0F0F0;
 }
 
 .status-table tbody tr {
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
 }
 
 .status-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #2A2A2A;
 }
 
 .status-table tbody tr:last-child td {
@@ -96,23 +102,23 @@ main {
 }
 
 .website-url {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.95rem;
-    color: #495057;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #D0D0D0;
     word-break: break-all;
 }
 
-/* Status indicator styles - Core requirement */
+/* Status indicator styles - Core Protocol compliance */
 .status-operational {
     color: #28a745;
-    font-weight: bold;
-    font-size: 1.1rem;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
 .status-offline {
     color: #dc3545;
-    font-weight: bold;
-    font-size: 1.1rem;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
 .status-operational::before {
@@ -127,22 +133,65 @@ main {
     font-size: 1.2rem;
 }
 
+/* Loading and error states */
+.loading-state,
+.error-state {
+    text-align: center;
+    color: #B0B0B0;
+    font-style: italic;
+    padding: 30px !important;
+}
+
+.error-state {
+    color: #dc3545;
+}
+
+/* Status info section */
+.status-info {
+    padding: 15px 20px;
+    background: #222;
+    border-top: 1px solid #333;
+}
+
+.last-update {
+    font-size: 0.85rem;
+    color: #888;
+    text-align: center;
+    margin: 0;
+}
+
 footer {
     text-align: center;
     margin-top: 40px;
     padding: 20px 0;
-    color: white;
-    opacity: 0.8;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #333;
+    border-top: 2px solid #F0F0F0;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 20px 15px;
     }
     
     h1 {
-        font-size: 2rem;
+        font-size: 2.2rem;
     }
     
     .subtitle {
@@ -151,27 +200,26 @@ footer {
     
     .status-table th,
     .status-table td {
-        padding: 15px 10px;
+        padding: 15px 12px;
         font-size: 0.9rem;
     }
     
     .website-url {
         font-size: 0.8rem;
     }
+    
+    .status-table-container {
+        margin: 0 -5px;
+    }
 }
 
-/* Loading animation for future use */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@media (max-width: 480px) {
+    .status-table th,
+    .status-table td {
+        padding: 12px 8px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
 }
