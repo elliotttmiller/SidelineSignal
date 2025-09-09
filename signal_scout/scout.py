@@ -247,6 +247,12 @@ class SignalScout:
                     cursor.execute('UPDATE sites SET status = "inactive" WHERE is_active = 0')
                     conn.commit()
                 
+                # V2 Enhancement: Add failure_count column for enhanced quarantine tracking
+                if 'failure_count' not in columns:
+                    logger.info("Adding failure_count column for enhanced V2 quarantine tracking...")
+                    cursor.execute('ALTER TABLE sites ADD COLUMN failure_count INTEGER DEFAULT 0')
+                    conn.commit()
+                
             conn.close()
             logger.info("Database schema verified")
             
@@ -351,7 +357,9 @@ class SignalScout:
     
     def _quarantine_failed_sites(self, failed_urls):
         """
-        V2 Feature: Mark sites for quarantine if they fail verification.
+        V2 Enhanced Feature: Mark sites for quarantine with consecutive failure tracking.
+        
+        Sites move through: active -> quarantined -> inactive (after 3 consecutive failures)
         
         Args:
             failed_urls (list): List of URLs that failed verification
@@ -360,9 +368,11 @@ class SignalScout:
             dict: Statistics about quarantine actions
         """
         if not failed_urls:
-            return {'quarantined': 0, 'reactivated': 0}
+            return {'quarantined': 0, 'deactivated': 0, 'failure_tracked': 0}
             
         quarantined_count = 0
+        deactivated_count = 0
+        failure_tracked_count = 0
         
         try:
             conn = sqlite3.connect(self.db_path)
@@ -371,44 +381,70 @@ class SignalScout:
             max_failed_attempts = self.config.get('maintenance_settings', {}).get('max_failed_attempts', 3)
             
             for url in failed_urls:
-                # Check if site exists and is currently active
+                # Check if site exists and its current status
                 cursor.execute("""
-                    SELECT status, confidence_score FROM sites 
-                    WHERE url = ? AND is_active = 1
+                    SELECT status, failure_count, confidence_score FROM sites 
+                    WHERE url = ?
                 """, (url,))
                 
                 result = cursor.fetchone()
                 if result:
-                    current_status = result[0]
+                    current_status, current_failure_count, confidence_score = result
+                    current_failure_count = current_failure_count or 0
+                    new_failure_count = current_failure_count + 1
                     
                     if current_status == 'active':
-                        # Move to quarantine on first failure
+                        # V2 Enhanced: Move to quarantine on first failure
                         cursor.execute("""
                             UPDATE sites 
-                            SET status = 'quarantined', last_verified = ?, is_active = 0
+                            SET status = 'quarantined', failure_count = ?, last_verified = ?, is_active = 0
                             WHERE url = ?
-                        """, (datetime.now(), url))
+                        """, (new_failure_count, datetime.now(), url))
                         quarantined_count += 1
-                        logger.info(f"Quarantined site: {url}")
+                        logger.info(f"V2 Quarantine: Active site quarantined: {url} (failure #{new_failure_count})")
                         
                     elif current_status == 'quarantined':
-                        # TODO: Implement failure count tracking and eventual deactivation
-                        # For now, just update timestamp
+                        # V2 Enhanced: Track consecutive failures in quarantine
+                        if new_failure_count >= max_failed_attempts:
+                            # Deactivate after max consecutive failures
+                            cursor.execute("""
+                                UPDATE sites 
+                                SET status = 'inactive', failure_count = ?, last_verified = ?, is_active = 0
+                                WHERE url = ?
+                            """, (new_failure_count, datetime.now(), url))
+                            deactivated_count += 1
+                            logger.info(f"V2 Quarantine: Site deactivated after {new_failure_count} consecutive failures: {url}")
+                        else:
+                            # Still in quarantine, increment failure count
+                            cursor.execute("""
+                                UPDATE sites 
+                                SET failure_count = ?, last_verified = ?
+                                WHERE url = ?
+                            """, (new_failure_count, datetime.now(), url))
+                            failure_tracked_count += 1
+                            logger.info(f"V2 Quarantine: Failure #{new_failure_count} tracked for quarantined site: {url}")
+                    
+                    elif current_status == 'inactive':
+                        # Just update the timestamp for inactive sites
                         cursor.execute("""
                             UPDATE sites 
                             SET last_verified = ?
                             WHERE url = ?
                         """, (datetime.now(), url))
-                        logger.info(f"Site remains quarantined: {url}")
+                        logger.debug(f"V2 Quarantine: Updated timestamp for inactive site: {url}")
             
             conn.commit()
             conn.close()
             
-            return {'quarantined': quarantined_count, 'reactivated': 0}
+            return {
+                'quarantined': quarantined_count, 
+                'deactivated': deactivated_count,
+                'failure_tracked': failure_tracked_count
+            }
             
         except Exception as e:
-            logger.error(f"Failed to quarantine sites: {e}")
-            return {'quarantined': 0, 'reactivated': 0}
+            logger.error(f"V2 Quarantine: Failed to process failed sites: {e}")
+            return {'quarantined': 0, 'deactivated': 0, 'failure_tracked': 0}
     
     def run_discovery_cycle(self):
         """
@@ -502,7 +538,7 @@ class SignalScout:
                 logger.error(f"Error verifying {url}: {e}")
                 failed_sites.append(url)
         
-        # Step 4: Cleanup - V2 quarantine failed sites
+        # Step 4: Cleanup - V2 enhanced quarantine with failure tracking
         logger.info("Phase 3: Database Maintenance")
         quarantine_stats = self._quarantine_failed_sites([url for url in failed_sites if url in existing_urls])
         
@@ -516,6 +552,8 @@ class SignalScout:
             'new_sites': new_sites,
             'updated_sites': updated_sites,
             'quarantined': quarantine_stats.get('quarantined', 0),
+            'deactivated': quarantine_stats.get('deactivated', 0),
+            'failure_tracked': quarantine_stats.get('failure_tracked', 0),
             'reactivated': quarantine_stats.get('reactivated', 0),
             'duration': cycle_duration
         }
@@ -526,7 +564,8 @@ class SignalScout:
         logger.info(f"URLs Discovered: {summary['discovered']}")
         logger.info(f"Verification Results: {summary['verified']} passed, {summary['failed']} failed")
         logger.info(f"Database Changes: {summary['new_sites']} new sites, {summary['updated_sites']} updated")
-        logger.info(f"Quarantine Actions: {summary['quarantined']} quarantined, {summary['reactivated']} reactivated")
+        logger.info(f"V2 Quarantine Actions: {summary['quarantined']} quarantined, {summary['deactivated']} deactivated")
+        logger.info(f"V2 Failure Tracking: {summary['failure_tracked']} failures tracked, {summary['reactivated']} reactivated")
         logger.info("=" * 60)
         
         return summary
@@ -578,7 +617,9 @@ class SignalScout:
     
     def _reactivate_site(self, url, verification_result):
         """
-        V2 Feature: Reactivate a quarantined site that passed re-verification.
+        V2 Enhanced Feature: Reactivate a quarantined site that passed re-verification.
+        
+        Resets failure count when site successfully passes verification.
         
         Args:
             url (str): URL to reactivate
@@ -591,24 +632,28 @@ class SignalScout:
             confidence_score = verification_result.get('overall_confidence', 0)
             timestamp = datetime.now()
             
+            # V2 Enhancement: Reset failure count on successful reactivation
             cursor.execute("""
                 UPDATE sites 
-                SET status = 'active', is_active = 1, confidence_score = ?, last_verified = ?
+                SET status = 'active', is_active = 1, confidence_score = ?, 
+                    last_verified = ?, failure_count = 0
                 WHERE url = ?
             """, (confidence_score, timestamp, url))
             
             conn.commit()
             conn.close()
             
+            logger.info(f"V2 Reactivation: Site reactivated with failure count reset: {url}")
+            
         except Exception as e:
-            logger.error(f"Failed to reactivate site {url}: {e}")
+            logger.error(f"V2 Reactivation: Failed to reactivate site {url}: {e}")
     
     def get_database_status(self):
         """
-        Get current status of the sites database with V2 metrics.
+        Get current status of the sites database with V2 enhanced metrics.
         
         Returns:
-            dict: Database statistics including quarantine status
+            dict: Database statistics including enhanced quarantine status and failure tracking
         """
         try:
             conn = sqlite3.connect(self.db_path)
@@ -634,6 +679,25 @@ class SignalScout:
             cursor.execute("SELECT COUNT(*) FROM sites WHERE status = 'inactive'")
             inactive_sites = cursor.fetchone()[0]
             
+            # V2 Enhanced: Failure tracking metrics
+            cursor.execute("""
+                SELECT COUNT(*) FROM sites 
+                WHERE failure_count > 0 AND status != 'inactive'
+            """)
+            sites_with_failures = cursor.fetchone()[0]
+            
+            cursor.execute("""
+                SELECT AVG(failure_count) FROM sites 
+                WHERE failure_count > 0
+            """)
+            avg_failure_count = cursor.fetchone()[0] or 0
+            
+            cursor.execute("""
+                SELECT COUNT(*) FROM sites 
+                WHERE status = 'quarantined' AND failure_count >= 2
+            """)
+            at_risk_sites = cursor.fetchone()[0]  # Sites close to deactivation
+            
             # V2: Average confidence score
             cursor.execute("SELECT AVG(confidence_score) FROM sites WHERE is_active = 1")
             avg_confidence = cursor.fetchone()[0] or 0
@@ -657,6 +721,9 @@ class SignalScout:
                 'status_active': status_active,
                 'quarantined_sites': quarantined_sites,
                 'inactive_sites': inactive_sites,
+                'sites_with_failures': sites_with_failures,
+                'avg_failure_count': round(avg_failure_count, 1),
+                'at_risk_sites': at_risk_sites,
                 'avg_confidence': round(avg_confidence, 1),
                 'high_confidence_sites': high_confidence_sites,
                 'last_activity': last_activity
