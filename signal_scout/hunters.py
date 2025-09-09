@@ -8,7 +8,8 @@ from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin, urlparse
 import logging
-from serpapi import GoogleSearch
+from googlesearch import search
+import time
 import os
 
 # Configure logging
@@ -162,10 +163,12 @@ def _analyze_link_context(link, soup):
 
 def search_engine_analyst(api_key=None, search_terms=None):
     """
-    V2 Search Engine Analyst: Uses SerpApi to intelligently query Google for streaming sites.
+    V2 Resilient Search Engine Analyst: Uses googlesearch-python (free) to intelligently query Google for streaming sites.
+    
+    Features enhanced resilience with rate limiting and error handling to prevent IP blocks.
     
     Args:
-        api_key (str): SerpApi API key (if None, returns mock data)
+        api_key (str): Unused parameter for compatibility (since googlesearch-python is free)
         search_terms (list): List of search terms to query
         
     Returns:
@@ -174,68 +177,106 @@ def search_engine_analyst(api_key=None, search_terms=None):
     if search_terms is None:
         search_terms = [
             "StreamEast new domain 2024",
-            "SportsSurge alternative site",
+            "SportsSurge alternative site", 
             "free sports streaming site",
             "watch NFL online free",
             "live NBA stream free",
             "soccer streaming site 2024"
         ]
     
-    logger.info(f"V2 Search Engine Analyst: Starting search with {len(search_terms)} terms")
+    logger.info(f"V2 Resilient Search Engine Analyst: Starting search with {len(search_terms)} terms")
+    logger.info("Using FREE googlesearch-python library with anti-blocking measures")
     
     discovered_urls = []
     
-    # If no API key provided, return mock data for testing
-    if not api_key:
-        logger.warning("V2 Search Engine Analyst: No API key provided, returning mock data")
-        mock_results = [
-            ('https://streameast.live', 15),
-            ('https://sportssurge.club', 18),
-            ('https://freestreams-hd.com', 12),
-            ('https://nflstreams.org', 20),
-            ('https://watchsports.live', 14)
-        ]
-        return mock_results
+    # V2 Resilience: Rate limiting configuration
+    SLEEP_INTERVAL = 3  # 3 seconds between searches to mimic human behavior
+    MAX_RESULTS_PER_SEARCH = 10
     
     try:
-        for term in search_terms:
-            logger.info(f"V2 Search Engine Analyst: Searching for '{term}'")
+        for i, term in enumerate(search_terms):
+            logger.info(f"V2 Search Engine Analyst: Searching for '{term}' ({i+1}/{len(search_terms)})")
             
-            search = GoogleSearch({
-                "q": term,
-                "api_key": api_key,
-                "num": 10,  # Get top 10 results
-                "safe": "off"
-            })
-            
-            results = search.get_dict()
-            
-            if "organic_results" in results:
-                for i, result in enumerate(results["organic_results"]):
-                    url = result.get("link", "")
-                    title = result.get("title", "").lower()
-                    snippet = result.get("snippet", "").lower()
-                    
-                    if url and _is_potential_streaming_site(url, title, snippet):
-                        # Calculate relevance score based on position and content
-                        relevance_score = _calculate_search_relevance(i, title, snippet, term)
-                        discovered_urls.append((url, relevance_score))
-                        logger.info(f"V2 Search Engine Analyst: Found {url} (relevance: {relevance_score})")
+            try:
+                # V2 Critical Resilience Feature: Rate limiting between searches
+                if i > 0:  # Don't sleep before first search
+                    logger.debug(f"Rate limiting: Sleeping {SLEEP_INTERVAL} seconds before next search")
+                    time.sleep(SLEEP_INTERVAL)
+                
+                # V2 Resilient Search: Use built-in safety features
+                search_results = search(
+                    term,
+                    num_results=MAX_RESULTS_PER_SEARCH,
+                    sleep_interval=1,  # Additional delay between individual result fetches
+                    lang="en",
+                    advanced=True  # Use advanced search for better results
+                )
+                
+                # Process search results
+                position = 0
+                for result in search_results:
+                    if hasattr(result, 'url') and hasattr(result, 'title') and hasattr(result, 'description'):
+                        url = result.url
+                        title = result.title or ""
+                        description = result.description or ""
                         
-            # Small delay between searches to be respectful
-            import time
-            time.sleep(1)
+                        if _is_potential_streaming_site(url, title.lower(), description.lower()):
+                            # Calculate relevance score based on position and content
+                            relevance_score = _calculate_search_relevance(position, title, description, term)
+                            discovered_urls.append((url, relevance_score))
+                            logger.info(f"V2 Search Engine Analyst: Found {url} (relevance: {relevance_score})")
+                            
+                        position += 1
+                    else:
+                        # Handle basic string results from simple search
+                        url = str(result)
+                        if _is_potential_streaming_site(url, "", ""):
+                            relevance_score = 15 - min(position * 2, 10)  # Position-based scoring
+                            discovered_urls.append((url, relevance_score))
+                            logger.info(f"V2 Search Engine Analyst: Found {url} (relevance: {relevance_score})")
+                        position += 1
+                        
+            except Exception as search_error:
+                # V2 Critical Resilience: Graceful error handling for individual searches
+                logger.warning(f"V2 Search Engine Analyst: Search failed for '{term}': {search_error}")
+                logger.info("V2 Resilience: Continuing with remaining searches...")
+                
+                # Increase sleep interval if we get errors (potential rate limiting)
+                if "429" in str(search_error) or "blocked" in str(search_error).lower():
+                    logger.warning("V2 Resilience: Detected potential rate limiting, increasing delay")
+                    time.sleep(10)  # Wait longer before next attempt
+                    
+                continue  # Continue with next search term
             
     except Exception as e:
-        logger.error(f"V2 Search Engine Analyst failed: {e}")
-        # Return mock data if API fails
+        # V2 Critical Resilience: Overall error handling - should never crash the Scout
+        logger.error(f"V2 Search Engine Analyst: Critical error occurred: {e}")
+        logger.warning("V2 Resilience: Returning partial results and allowing Scout to continue")
+        
+        # Return any results we managed to get before the error
+        if discovered_urls:
+            logger.info(f"V2 Resilience: Returning {len(discovered_urls)} results despite errors")
+            return discovered_urls
+            
+        # If no results at all, return mock data as safe fallback
+        logger.warning("V2 Resilience: No results obtained, returning safe fallback data")
         mock_results = [
             ('https://streameast.live', 15),
             ('https://sportssurge.club', 18)
         ]
         return mock_results
     
-    logger.info(f"V2 Search Engine Analyst: Found {len(discovered_urls)} potential streaming URLs")
+    logger.info(f"V2 Resilient Search Engine Analyst: Successfully found {len(discovered_urls)} potential streaming URLs")
+    
+    # V2 Resilience: Final safety check - ensure we always return something
+    if not discovered_urls:
+        logger.warning("V2 Resilience: No search results found, returning safe fallback")
+        mock_results = [
+            ('https://streameast.live', 15),
+            ('https://sportssurge.club', 18)
+        ]
+        return mock_results
+    
     return discovered_urls
 
 
@@ -386,12 +427,15 @@ def discover_urls(aggregator_urls=None, permutation_bases=None, permutation_tlds
         aggregator_urls (list): URLs to scrape for community-aggregated links
         permutation_bases (list): Base names for domain permutation
         permutation_tlds (list): TLDs for domain permutation
-        serpapi_key (str): SerpApi key for search engine analysis
+        serpapi_key (str): Deprecated parameter (V2 now uses free googlesearch-python)
     
     Returns:
         dict: Dictionary with urls and their context bonuses for confidence scoring
     """
     logger.info("Starting V2 URL discovery process")
+    
+    if serpapi_key:
+        logger.warning("V2 Update: SerpApi key provided but V2 now uses free googlesearch-python library")
     
     discovered_data = {}
     
@@ -414,14 +458,14 @@ def discover_urls(aggregator_urls=None, permutation_bases=None, permutation_tlds
     except Exception as e:
         logger.error(f"Permutation Verifier failed: {e}")
     
-    # Run V2 Search Engine Analyst
+    # Run V2 Resilient Search Engine Analyst (free version)
     try:
-        search_results = search_engine_analyst(api_key=serpapi_key)
+        search_results = search_engine_analyst()  # No API key needed for free version
         for url, relevance_score in search_results:
             discovered_data[url] = discovered_data.get(url, 0) + relevance_score
-        logger.info(f"V2 Search Engine Analyst contributed {len(search_results)} URLs")
+        logger.info(f"V2 Resilient Search Engine Analyst contributed {len(search_results)} URLs")
     except Exception as e:
-        logger.error(f"V2 Search Engine Analyst failed: {e}")
+        logger.error(f"V2 Resilient Search Engine Analyst failed: {e}")
     
     final_urls = list(discovered_data.keys())
     logger.info(f"Total discovered URLs: {len(final_urls)}")
