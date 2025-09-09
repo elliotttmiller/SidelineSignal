@@ -32,7 +32,7 @@
   },
   "discovery_settings": {
     "max_concurrent_verifications": 10,
-    "request_timeout": 5,
+    "request_timeout": 10,
     "verification_confidence_threshold": 50
   },
   "maintenance_settings": {
@@ -44,5 +44,8 @@
     "log_level": "INFO",
     "log_file": "scout.log",
     "enable_console_output": true
+  },
+  "api_keys": {
+    "serpapi_key": null
   }
 }
