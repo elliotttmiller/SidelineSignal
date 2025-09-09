@@ -12,6 +12,8 @@ import json
 from datetime import datetime, timedelta
 import time
 from urllib.parse import urlparse
+from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page
+import atexit
 
 from hunters import discover_urls
 from verification import verify_url
@@ -57,11 +59,114 @@ class SignalScout:
         # Load configuration
         self.config = self._load_configuration()
         
-        logger.info(f"Signal Scout initialized with database: {self.db_path}")
+        # Initialize V2 Headless Browser System
+        self.playwright = None
+        self.browser = None
+        self.context = None
+        self._initialize_browser()
+        
+        logger.info(f"Signal Scout V2 initialized with database: {self.db_path}")
         logger.info(f"Configuration loaded from: {self.config_path}")
+        logger.info("Headless browser system active")
         
         # Ensure database exists and has correct schema
         self._ensure_database()
+        
+        # Register cleanup function
+        atexit.register(self._cleanup_browser)
+    
+    def _initialize_browser(self):
+        """
+        Initialize the Playwright browser for dynamic content analysis.
+        """
+        try:
+            self.playwright = sync_playwright().start()
+            self.browser = self.playwright.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage']
+            )
+            self.context = self.browser.new_context(
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                viewport={'width': 1920, 'height': 1080}
+            )
+            logger.info("Headless browser initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize browser: {e}")
+            # Fallback to requests-only mode if browser fails
+            self.playwright = None
+            self.browser = None
+            self.context = None
+    
+    def _cleanup_browser(self):
+        """
+        Clean up browser resources on exit.
+        """
+        try:
+            if self.context:
+                self.context.close()
+            if self.browser:
+                self.browser.close()
+            if self.playwright:
+                self.playwright.stop()
+            logger.debug("Browser resources cleaned up")
+        except Exception as e:
+            logger.debug(f"Error during browser cleanup: {e}")
+    
+    def get_dynamic_page_content(self, url, timeout=10):
+        """
+        V2 Feature: Get fully rendered page content using headless browser.
+        
+        Args:
+            url (str): URL to fetch
+            timeout (int): Timeout in seconds
+            
+        Returns:
+            dict: Result containing HTML content and metadata
+        """
+        if not self.context:
+            logger.warning("Browser not available, falling back to requests")
+            return None
+            
+        try:
+            page = self.context.new_page()
+            
+            # Navigate with timeout
+            page.goto(url, timeout=timeout * 1000, wait_until='domcontentloaded')
+            
+            # Wait for additional dynamic content
+            page.wait_for_timeout(2000)
+            
+            # Get fully rendered content
+            content = page.content()
+            title = page.title()
+            
+            # Get page metadata
+            result = {
+                'success': True,
+                'content': content,
+                'title': title,
+                'url': page.url,  # Final URL after redirects
+                'error': None
+            }
+            
+            page.close()
+            logger.debug(f"Successfully fetched dynamic content for {url}")
+            return result
+            
+        except Exception as e:
+            logger.debug(f"Failed to fetch dynamic content for {url}: {e}")
+            if 'page' in locals():
+                try:
+                    page.close()
+                except:
+                    pass
+            return {
+                'success': False,
+                'content': None,
+                'title': None,
+                'url': url,
+                'error': str(e)
+            }
     
     def _load_configuration(self):
         """
@@ -125,10 +230,22 @@ class SignalScout:
                         source TEXT,
                         last_verified DATETIME,
                         confidence_score INTEGER,
-                        is_active BOOLEAN
+                        is_active BOOLEAN,
+                        status TEXT DEFAULT 'active'
                     )
                 ''')
                 conn.commit()
+            else:
+                # Check if status column exists, add it if not (V2 upgrade)
+                cursor.execute("PRAGMA table_info(sites)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if 'status' not in columns:
+                    logger.info("Adding status column for V2 upgrade...")
+                    cursor.execute('ALTER TABLE sites ADD COLUMN status TEXT DEFAULT "active"')
+                    # Update existing active sites to have 'active' status
+                    cursor.execute('UPDATE sites SET status = "active" WHERE is_active = 1')
+                    cursor.execute('UPDATE sites SET status = "inactive" WHERE is_active = 0')
+                    conn.commit()
                 
             conn.close()
             logger.info("Database schema verified")
@@ -204,22 +321,27 @@ class SignalScout:
             confidence_score = verification_result.get('overall_confidence', 0)
             timestamp = datetime.now()
             
+            # V2: Use threshold from config
+            threshold = self.config.get('discovery_settings', {}).get('verification_confidence_threshold', 50)
+            is_active = confidence_score >= threshold
+            status = 'active' if is_active else 'inactive'
+            
             # Try to update existing entry first
             cursor.execute("""
                 UPDATE sites 
-                SET last_verified = ?, confidence_score = ?, is_active = ?
+                SET last_verified = ?, confidence_score = ?, is_active = ?, status = ?
                 WHERE url = ?
-            """, (timestamp, confidence_score, True, url))
+            """, (timestamp, confidence_score, is_active, status, url))
             
             if cursor.rowcount == 0:
                 # Insert new entry
                 cursor.execute("""
-                    INSERT INTO sites (name, url, source, last_verified, confidence_score, is_active)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (site_name, url, 'scout_discovery', timestamp, confidence_score, True))
-                logger.info(f"Added new site: {site_name} ({url}) - confidence: {confidence_score}")
+                    INSERT INTO sites (name, url, source, last_verified, confidence_score, is_active, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (site_name, url, 'scout_discovery', timestamp, confidence_score, is_active, status))
+                logger.info(f"Added new site: {site_name} ({url}) - confidence: {confidence_score}, status: {status}")
             else:
-                logger.info(f"Updated existing site: {site_name} ({url}) - confidence: {confidence_score}")
+                logger.info(f"Updated existing site: {site_name} ({url}) - confidence: {confidence_score}, status: {status}")
                 
             conn.commit()
             conn.close()
@@ -227,9 +349,9 @@ class SignalScout:
         except Exception as e:
             logger.error(f"Failed to store site {url}: {e}")
     
-    def _deactivate_failed_sites(self, failed_urls):
+    def _quarantine_failed_sites(self, failed_urls):
         """
-        Mark sites as inactive if they repeatedly fail verification.
+        V2 Feature: Mark sites for quarantine if they fail verification.
         
         Args:
             failed_urls (list): List of URLs that failed verification
@@ -241,31 +363,43 @@ class SignalScout:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Get sites that were last verified more than 24 hours ago and failed again
-            cutoff_time = datetime.now() - timedelta(hours=24)
+            max_failed_attempts = self.config.get('maintenance_settings', {}).get('max_failed_attempts', 3)
             
             for url in failed_urls:
+                # Check if site exists and is currently active
                 cursor.execute("""
-                    SELECT last_verified FROM sites 
+                    SELECT status, confidence_score FROM sites 
                     WHERE url = ? AND is_active = 1
                 """, (url,))
                 
                 result = cursor.fetchone()
                 if result:
-                    last_verified = datetime.fromisoformat(result[0])
-                    if last_verified < cutoff_time:
+                    current_status = result[0]
+                    
+                    if current_status == 'active':
+                        # Move to quarantine on first failure
                         cursor.execute("""
                             UPDATE sites 
-                            SET is_active = 0, last_verified = ?
+                            SET status = 'quarantined', last_verified = ?, is_active = 0
                             WHERE url = ?
                         """, (datetime.now(), url))
-                        logger.info(f"Deactivated failing site: {url}")
+                        logger.info(f"Quarantined site: {url}")
+                        
+                    elif current_status == 'quarantined':
+                        # TODO: Implement failure count tracking and eventual deactivation
+                        # For now, just update timestamp
+                        cursor.execute("""
+                            UPDATE sites 
+                            SET last_verified = ?
+                            WHERE url = ?
+                        """, (datetime.now(), url))
+                        logger.info(f"Site remains quarantined: {url}")
             
             conn.commit()
             conn.close()
             
         except Exception as e:
-            logger.error(f"Failed to deactivate sites: {e}")
+            logger.error(f"Failed to quarantine sites: {e}")
     
     def run_discovery_cycle(self):
         """
@@ -280,13 +414,16 @@ class SignalScout:
         
         cycle_start = time.time()
         
-        # Step 1: Discover URLs using hunter modules with configuration
+        # Step 1: Discover URLs using V2 hunter modules with configuration
         logger.info("Phase 1: URL Discovery")
         operational_params = self.config.get('operational_parameters', {})
+        serpapi_key = self.config.get('api_keys', {}).get('serpapi_key', None)
+        
         discovered_urls = discover_urls(
             aggregator_urls=operational_params.get('aggregator_urls'),
             permutation_bases=operational_params.get('permutation_bases'), 
-            permutation_tlds=operational_params.get('permutation_tlds')
+            permutation_tlds=operational_params.get('permutation_tlds'),
+            serpapi_key=serpapi_key
         )
         logger.info(f"Discovered {len(discovered_urls)} candidate URLs")
         
@@ -309,7 +446,7 @@ class SignalScout:
         logger.info(f"New URLs to verify: {len(new_urls)}")
         logger.info(f"Existing URLs to re-verify: {len(existing_to_reverify)}")
         
-        # Step 3: Verification phase
+        # Step 3: Verification phase with V2 dynamic verification
         logger.info("Phase 2: Verification Pipeline")
         
         verified_sites = []
@@ -324,9 +461,13 @@ class SignalScout:
             logger.info(f"Verifying ({i}/{len(all_urls_to_verify)}): {url}")
             
             try:
-                verification_result = verify_url(url)
+                # V2: Pass browser instance to verification pipeline
+                verification_result = verify_url(url, scout_instance=self)
                 
-                if verification_result['passed']:
+                # V2: Use configurable threshold
+                threshold = self.config.get('discovery_settings', {}).get('verification_confidence_threshold', 50)
+                
+                if verification_result['overall_confidence'] >= threshold:
                     verified_sites.append((url, verification_result))
                     
                     # Store in database
@@ -340,15 +481,15 @@ class SignalScout:
                         
                 else:
                     failed_sites.append(url)
-                    logger.debug(f"Verification failed for {url}")
+                    logger.debug(f"Verification failed for {url} - confidence: {verification_result['overall_confidence']}")
                     
             except Exception as e:
                 logger.error(f"Error verifying {url}: {e}")
                 failed_sites.append(url)
         
-        # Step 4: Cleanup - deactivate persistently failing sites
+        # Step 4: Cleanup - V2 quarantine failed sites
         logger.info("Phase 3: Database Maintenance")
-        self._deactivate_failed_sites([url for url in failed_sites if url in existing_urls])
+        self._quarantine_failed_sites([url for url in failed_sites if url in existing_urls])
         
         # Step 5: Summary
         cycle_duration = time.time() - cycle_start
