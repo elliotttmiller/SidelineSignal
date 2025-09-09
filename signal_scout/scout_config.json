@@ -1,0 +1,48 @@
+{
+  "operational_parameters": {
+    "aggregator_urls": [
+      "https://github.com/fmhy/FMHYedit/wiki/📺-Movies---TV"
+    ],
+    "permutation_bases": [
+      "streameast",
+      "sportssurge", 
+      "freestreams",
+      "watchseries",
+      "moviehd",
+      "live2sports",
+      "crackstreams",
+      "buffstreams",
+      "topstreams",
+      "vipbox"
+    ],
+    "permutation_tlds": [
+      ".app",
+      ".io", 
+      ".live",
+      ".gg",
+      ".net",
+      ".org", 
+      ".tv",
+      ".me",
+      ".co",
+      ".cc",
+      ".site",
+      ".online"
+    ]
+  },
+  "discovery_settings": {
+    "max_concurrent_verifications": 10,
+    "request_timeout": 5,
+    "verification_confidence_threshold": 50
+  },
+  "maintenance_settings": {
+    "deactivation_hours": 24,
+    "max_failed_attempts": 3,
+    "cleanup_stale_sites": true
+  },
+  "logging_settings": {
+    "log_level": "INFO",
+    "log_file": "scout.log",
+    "enable_console_output": true
+  }
+}

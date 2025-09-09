@@ -8,6 +8,7 @@ verification, and database storage for the SidelineSignal monitoring system.
 import sqlite3
 import os
 import logging
+import json
 from datetime import datetime, timedelta
 import time
 from urllib.parse import urlparse
@@ -32,12 +33,13 @@ class SignalScout:
     Main Scout engine that orchestrates the discovery and verification process.
     """
     
-    def __init__(self, db_path=None):
+    def __init__(self, db_path=None, config_path=None):
         """
         Initialize the Signal Scout.
         
         Args:
             db_path (str): Path to the SQLite database (default: ../shared_data/sites.db)
+            config_path (str): Path to the configuration file (default: ./scout_config.json)
         """
         if db_path is None:
             # Default path relative to scout directory
@@ -46,10 +48,58 @@ class SignalScout:
             self.db_path = db_path
             
         self.db_path = os.path.abspath(self.db_path)
+        
+        if config_path is None:
+            self.config_path = os.path.join(os.path.dirname(__file__), 'scout_config.json')
+        else:
+            self.config_path = config_path
+        
+        # Load configuration
+        self.config = self._load_configuration()
+        
         logger.info(f"Signal Scout initialized with database: {self.db_path}")
+        logger.info(f"Configuration loaded from: {self.config_path}")
         
         # Ensure database exists and has correct schema
         self._ensure_database()
+    
+    def _load_configuration(self):
+        """
+        Load configuration from JSON file.
+        
+        Returns:
+            dict: Configuration dictionary
+        """
+        try:
+            with open(self.config_path, 'r') as f:
+                config = json.load(f)
+            logger.info("Configuration loaded successfully")
+            return config
+        except FileNotFoundError:
+            logger.warning(f"Configuration file not found at {self.config_path}, using default values")
+            return {
+                "operational_parameters": {
+                    "aggregator_urls": ["https://github.com/fmhy/FMHYedit/wiki/📺-Movies---TV"],
+                    "permutation_bases": ["streameast", "sportssurge", "freestreams", "watchseries", "moviehd"],
+                    "permutation_tlds": [".app", ".io", ".live", ".gg", ".net", ".org", ".tv", ".me", ".co", ".cc"]
+                },
+                "discovery_settings": {
+                    "max_concurrent_verifications": 10,
+                    "request_timeout": 5,
+                    "verification_confidence_threshold": 50
+                },
+                "maintenance_settings": {
+                    "deactivation_hours": 24,
+                    "max_failed_attempts": 3,
+                    "cleanup_stale_sites": True
+                }
+            }
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in configuration file: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error loading configuration: {e}")
+            raise
     
     def _ensure_database(self):
         """
@@ -230,9 +280,14 @@ class SignalScout:
         
         cycle_start = time.time()
         
-        # Step 1: Discover URLs using hunter modules
+        # Step 1: Discover URLs using hunter modules with configuration
         logger.info("Phase 1: URL Discovery")
-        discovered_urls = discover_urls()
+        operational_params = self.config.get('operational_parameters', {})
+        discovered_urls = discover_urls(
+            aggregator_urls=operational_params.get('aggregator_urls'),
+            permutation_bases=operational_params.get('permutation_bases'), 
+            permutation_tlds=operational_params.get('permutation_tlds')
+        )
         logger.info(f"Discovered {len(discovered_urls)} candidate URLs")
         
         if not discovered_urls:
