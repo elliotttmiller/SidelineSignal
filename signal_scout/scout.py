@@ -355,10 +355,15 @@ class SignalScout:
         
         Args:
             failed_urls (list): List of URLs that failed verification
+            
+        Returns:
+            dict: Statistics about quarantine actions
         """
         if not failed_urls:
-            return
+            return {'quarantined': 0, 'reactivated': 0}
             
+        quarantined_count = 0
+        
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -383,6 +388,7 @@ class SignalScout:
                             SET status = 'quarantined', last_verified = ?, is_active = 0
                             WHERE url = ?
                         """, (datetime.now(), url))
+                        quarantined_count += 1
                         logger.info(f"Quarantined site: {url}")
                         
                     elif current_status == 'quarantined':
@@ -398,21 +404,28 @@ class SignalScout:
             conn.commit()
             conn.close()
             
+            return {'quarantined': quarantined_count, 'reactivated': 0}
+            
         except Exception as e:
             logger.error(f"Failed to quarantine sites: {e}")
+            return {'quarantined': 0, 'reactivated': 0}
     
     def run_discovery_cycle(self):
         """
-        Execute a complete discovery and verification cycle.
+        Execute a complete V2 discovery and verification cycle with quarantine management.
         
         Returns:
             dict: Summary of the discovery cycle results
         """
         logger.info("=" * 60)
-        logger.info("SIGNAL SCOUT - Starting Discovery Cycle")
+        logger.info("SIGNAL SCOUT V2 - Starting Discovery Cycle")
         logger.info("=" * 60)
         
         cycle_start = time.time()
+        
+        # V2: Step 0: Re-verify quarantined sites first
+        logger.info("Phase 0: Quarantine Re-verification")
+        self._reverify_quarantined_sites()
         
         # Step 1: Discover URLs using V2 hunter modules with configuration
         logger.info("Phase 1: URL Discovery")
@@ -435,6 +448,8 @@ class SignalScout:
                 'failed': 0,
                 'new_sites': 0,
                 'updated_sites': 0,
+                'quarantined': 0,
+                'reactivated': 0,
                 'duration': time.time() - cycle_start
             }
         
@@ -489,7 +504,7 @@ class SignalScout:
         
         # Step 4: Cleanup - V2 quarantine failed sites
         logger.info("Phase 3: Database Maintenance")
-        self._quarantine_failed_sites([url for url in failed_sites if url in existing_urls])
+        quarantine_stats = self._quarantine_failed_sites([url for url in failed_sites if url in existing_urls])
         
         # Step 5: Summary
         cycle_duration = time.time() - cycle_start
@@ -500,25 +515,100 @@ class SignalScout:
             'failed': len(failed_sites),
             'new_sites': new_sites,
             'updated_sites': updated_sites,
+            'quarantined': quarantine_stats.get('quarantined', 0),
+            'reactivated': quarantine_stats.get('reactivated', 0),
             'duration': cycle_duration
         }
         
         logger.info("=" * 60)
-        logger.info("DISCOVERY CYCLE COMPLETE")
+        logger.info("V2 DISCOVERY CYCLE COMPLETE")
         logger.info(f"Duration: {cycle_duration:.1f} seconds")
         logger.info(f"URLs Discovered: {summary['discovered']}")
         logger.info(f"Verification Results: {summary['verified']} passed, {summary['failed']} failed")
         logger.info(f"Database Changes: {summary['new_sites']} new sites, {summary['updated_sites']} updated")
+        logger.info(f"Quarantine Actions: {summary['quarantined']} quarantined, {summary['reactivated']} reactivated")
         logger.info("=" * 60)
         
         return summary
     
+    def _reverify_quarantined_sites(self):
+        """
+        V2 Feature: Re-verify quarantined sites to potentially reactivate them.
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Get quarantined sites
+            cursor.execute("""
+                SELECT url FROM sites 
+                WHERE status = 'quarantined'
+            """)
+            
+            quarantined_urls = [row[0] for row in cursor.fetchall()]
+            conn.close()
+            
+            if not quarantined_urls:
+                logger.info("No quarantined sites to re-verify")
+                return
+                
+            logger.info(f"Re-verifying {len(quarantined_urls)} quarantined sites")
+            
+            reactivated = 0
+            threshold = self.config.get('discovery_settings', {}).get('verification_confidence_threshold', 50)
+            
+            for url in quarantined_urls:
+                try:
+                    verification_result = verify_url(url, scout_instance=self)
+                    
+                    if verification_result['overall_confidence'] >= threshold:
+                        # Reactivate the site
+                        self._reactivate_site(url, verification_result)
+                        reactivated += 1
+                        logger.info(f"Reactivated quarantined site: {url}")
+                        
+                except Exception as e:
+                    logger.error(f"Error re-verifying quarantined site {url}: {e}")
+            
+            if reactivated > 0:
+                logger.info(f"Reactivated {reactivated} sites from quarantine")
+                
+        except Exception as e:
+            logger.error(f"Failed to re-verify quarantined sites: {e}")
+    
+    def _reactivate_site(self, url, verification_result):
+        """
+        V2 Feature: Reactivate a quarantined site that passed re-verification.
+        
+        Args:
+            url (str): URL to reactivate
+            verification_result (dict): Verification result
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            confidence_score = verification_result.get('overall_confidence', 0)
+            timestamp = datetime.now()
+            
+            cursor.execute("""
+                UPDATE sites 
+                SET status = 'active', is_active = 1, confidence_score = ?, last_verified = ?
+                WHERE url = ?
+            """, (confidence_score, timestamp, url))
+            
+            conn.commit()
+            conn.close()
+            
+        except Exception as e:
+            logger.error(f"Failed to reactivate site {url}: {e}")
+    
     def get_database_status(self):
         """
-        Get current status of the sites database.
+        Get current status of the sites database with V2 metrics.
         
         Returns:
-            dict: Database statistics
+            dict: Database statistics including quarantine status
         """
         try:
             conn = sqlite3.connect(self.db_path)
@@ -534,6 +624,24 @@ class SignalScout:
             cursor.execute("SELECT COUNT(*) FROM sites WHERE source = 'scout_discovery'")
             scout_discovered = cursor.fetchone()[0]
             
+            # V2: Status-based counts
+            cursor.execute("SELECT COUNT(*) FROM sites WHERE status = 'active'")
+            status_active = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM sites WHERE status = 'quarantined'")
+            quarantined_sites = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM sites WHERE status = 'inactive'")
+            inactive_sites = cursor.fetchone()[0]
+            
+            # V2: Average confidence score
+            cursor.execute("SELECT AVG(confidence_score) FROM sites WHERE is_active = 1")
+            avg_confidence = cursor.fetchone()[0] or 0
+            
+            # V2: High-confidence sites (>= 70)
+            cursor.execute("SELECT COUNT(*) FROM sites WHERE confidence_score >= 70")
+            high_confidence_sites = cursor.fetchone()[0]
+            
             cursor.execute("""
                 SELECT MAX(last_verified) FROM sites 
                 WHERE last_verified IS NOT NULL
@@ -546,6 +654,11 @@ class SignalScout:
                 'total_sites': total_sites,
                 'active_sites': active_sites,
                 'scout_discovered': scout_discovered,
+                'status_active': status_active,
+                'quarantined_sites': quarantined_sites,
+                'inactive_sites': inactive_sites,
+                'avg_confidence': round(avg_confidence, 1),
+                'high_confidence_sites': high_confidence_sites,
                 'last_activity': last_activity
             }
             
