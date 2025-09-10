@@ -4,6 +4,123 @@
 
 SidelineSignal V3 represents the evolution of autonomous streaming site discovery, featuring a sophisticated AI-powered cognitive crawler built on Scrapy architecture. This system combines machine learning classification with intelligent link analysis to autonomously discover, classify, and verify streaming sites with minimal human intervention.
 
+## The SidelineSignal Command Center
+
+**The Ultimate User Experience - Professional Terminal Control Panel**
+
+SidelineSignal V3 now features the **Command Center**, a revolutionary user interface that transforms complex system operations into an intuitive, pixel-perfect experience. The Command Center provides two powerful interfaces for operating your cognitive streaming discovery system:
+
+### 🎯 Quick Start - Professional Automation
+
+For simple automation tasks, use the **Advanced Orchestrator Engine**:
+
+```bash
+# Train the AI classification model
+python run.py --train
+
+# Execute the V3 cognitive crawler  
+python run.py --scout
+
+# Start the monitoring web application
+python run.py --app
+
+# Run comprehensive system test
+python run.py --full-test
+```
+
+### 🚀 Recommended - Terminal Command Center
+
+For the ultimate operational experience, launch the **professional TUI dashboard**:
+
+```bash
+# Activate the scout virtual environment
+source scout_venv/bin/activate
+
+# Launch the Terminal Command Center
+python control.py
+```
+
+#### Command Center Dashboard Features
+
+```
+┌────────────────────────────────────────────────────────────────────────────────┐
+│  🎯 SidelineSignal Command Center — V3 Cognitive Engine Control Panel          │
+├─────────────────────┬──────────────────────────────────────────────────────────┤
+│                     │ PRE-FLIGHT SYSTEM CHECK                                 │
+│ System Controls     │ ==============================                           │
+│                     │ AI Model Trained: ✅ YES                                │
+│ ┌─────────────────┐ │ Database Initialized: ✅ YES                            │
+│ │ Train AI Model  │ │ Scout venv: ✅ OK                                       │
+│ └─────────────────┘ │ App venv: ✅ OK                                         │
+│                     │                                                         │
+│ ┌─────────────────┐ │ Model Path: signal_scout/scout_model.pkl                │
+│ │Start Scout Run  │ │ Database Path: shared_data/sites.db                     │
+│ └─────────────────┘ │                                                         │
+│                     │                                                         │
+│ ┌─────────────────┐ │ *** LIVE LOG VIEWER ***                                 │
+│ │ Start Web App   │ │ [Filter: keyword search]                                │
+│ └─────────────────┘ │ [2025-01-09 09:05:02] Scout run starting...            │
+│                     │ [2025-01-09 09:05:03] AI classifier loaded              │
+│ ┌─────────────────┐ │ [2025-01-09 09:05:05] New site discovered               │
+│ │ Stop Web App    │ │                                                         │
+│ └─────────────────┘ │ *** AFTER ACTION REPORT ***                             │
+│                     │ New Sites Found: 12                                     │
+│ ┌─────────────────┐ │ Sites Quarantined: 3                                    │
+│ │Full System Test │ │ Total Active Sites: 156                                 │
+│ └─────────────────┘ │                                                         │
+├─────────────────────┴──────────────────────────────────────────────────────────┤
+│ Ctrl+C: Quit | F1: Toggle Log | F2: Show Report | F3: Refresh                 │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Advanced TUI Capabilities:**
+
+- **🔍 Pre-Flight System Check**: Automatic verification of all system components
+- **⚡ One-Click Operations**: Dedicated buttons for all major system functions
+- **📊 Real-Time Log Viewer**: Live monitoring of scout.log with keyword filtering
+- **📈 After Action Reports**: Detailed summaries of completed operations
+- **🎮 Professional Interface**: Keyboard shortcuts and responsive design
+- **🔄 Live Updates**: Real-time status monitoring and progress indicators
+
+#### Command Center Controls
+
+| Control | Function | Description |
+|---------|----------|-------------|
+| **Train AI Model** | Trains/retrains the classification model | Updates AI with latest positive/negative samples |
+| **Start Scout Run** | Launches V3 cognitive crawler | Executes full Scrapy-based discovery operation |
+| **Start Web App** | Starts monitoring interface | Launches Flask app at http://localhost:5000 |
+| **Stop Web App** | Terminates web application | Safely shuts down the monitoring interface |
+| **Full System Test** | Comprehensive validation | Runs limited test to verify all components |
+
+#### Keyboard Shortcuts
+
+- **Ctrl+C**: Exit Command Center
+- **F1**: Toggle between Pre-Flight Check and Live Log Viewer
+- **F2**: Display After Action Report (after scout runs)
+- **F3**: Refresh current display content
+
+### 🎮 Command Center Operational Workflows
+
+**Daily Discovery Operation:**
+1. Launch Command Center: `python control.py`
+2. Verify pre-flight check shows all green status
+3. Click "Start Scout Run" for autonomous discovery
+4. Monitor real-time logs in the Live Log Viewer (F1)
+5. Review After Action Report when complete (F2)
+6. Launch monitoring: Click "Start Web App" for real-time site monitoring
+
+**AI Model Management:**
+1. Update training samples in `signal_scout/positive_samples.txt` and `negative_samples.txt`
+2. Launch Command Center: `python control.py`
+3. Click "Train AI Model" to retrain with new data
+4. Verify model training completion in operation status
+
+**System Testing:**
+1. Launch Command Center: `python control.py`
+2. Click "Full System Test" for automated validation
+3. Monitor test progress in real-time
+4. Review results in operation status display
+
 ## Project Overview
 
 SidelineSignal V3 implements a cutting-edge cognitive architecture that elevates streaming site discovery to autonomous intelligence:
