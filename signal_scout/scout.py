@@ -18,6 +18,13 @@ import atexit
 from hunters import discover_urls
 from verification import verify_url
 
+# V3 Integration
+try:
+    from v3_integration import extend_scout_with_v3, check_v3_dependencies
+    V3_AVAILABLE = True
+except ImportError:
+    V3_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -65,7 +72,15 @@ class SignalScout:
         self.context = None
         self._initialize_browser()
         
-        logger.info(f"Signal Scout V2 initialized with database: {self.db_path}")
+        # V3 Cognitive Engine (optional)
+        self.v3_engine = None
+        if V3_AVAILABLE and check_v3_dependencies():
+            self.v3_engine = extend_scout_with_v3(self)
+            logger.info("V3 Cognitive Engine activated")
+        else:
+            logger.info("V3 Cognitive Engine not available - running in V2 mode")
+        
+        logger.info(f"Signal Scout V2{'/V3' if self.v3_engine else ''} initialized with database: {self.db_path}")
         logger.info(f"Configuration loaded from: {self.config_path}")
         logger.info("Headless browser system active")
         
@@ -446,9 +461,27 @@ class SignalScout:
             logger.error(f"V2 Quarantine: Failed to process failed sites: {e}")
             return {'quarantined': 0, 'deactivated': 0, 'failure_tracked': 0}
     
-    def run_discovery_cycle(self):
+    def run_discovery_cycle(self, mode='v2'):
         """
-        Execute a complete V2 discovery and verification cycle with quarantine management.
+        Execute a complete discovery and verification cycle with mode selection.
+        
+        Args:
+            mode (str): Discovery mode - 'v2', 'v3', or 'hybrid'
+        
+        Returns:
+            dict: Summary of the discovery cycle results
+        """
+        if mode == 'v3' and self.v3_engine:
+            return self.v3_engine.run_autonomous_discovery_cycle()
+        elif mode == 'hybrid' and self.v3_engine:
+            return self.v3_engine.run_hybrid_discovery_cycle()
+        else:
+            # Default V2 mode
+            return self._run_v2_discovery_cycle()
+    
+    def _run_v2_discovery_cycle(self):
+        """
+        Execute the original V2 discovery and verification cycle.
         
         Returns:
             dict: Summary of the discovery cycle results
@@ -737,16 +770,36 @@ class SignalScout:
 def main():
     """
     Main execution function for standalone script usage.
+    
+    Supports command-line arguments for V3 modes:
+    python scout.py [v2|v3|hybrid]
     """
+    import sys
+    
+    # Parse command line arguments
+    mode = 'v2'  # Default mode
+    if len(sys.argv) > 1:
+        requested_mode = sys.argv[1].lower()
+        if requested_mode in ['v2', 'v3', 'hybrid']:
+            mode = requested_mode
+        else:
+            print(f"Invalid mode: {requested_mode}. Using default 'v2' mode.")
+            print("Available modes: v2, v3, hybrid")
+    
     try:
         scout = SignalScout()
+        
+        print(f"\nSignal Scout Mode: {mode.upper()}")
+        if mode != 'v2' and not scout.v3_engine:
+            print("V3 engine not available, falling back to V2 mode")
+            mode = 'v2'
         
         # Display initial database status
         status = scout.get_database_status()
         logger.info(f"Initial database status: {status}")
         
-        # Run discovery cycle
-        summary = scout.run_discovery_cycle()
+        # Run discovery cycle with selected mode
+        summary = scout.run_discovery_cycle(mode=mode)
         
         # Display final database status
         final_status = scout.get_database_status()

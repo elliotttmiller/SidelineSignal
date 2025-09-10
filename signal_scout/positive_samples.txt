@@ -1,0 +1,38 @@
+# Positive samples: Known streaming sites (use these URLs for training as positive examples)
+# These represent the type of sites we want to identify
+
+# Sports streaming sites
+https://streameast.xyz
+https://crackstreams.net
+https://buffstreams.tv
+https://sportsurge.net
+https://vipbox.lc
+https://live2sports.com
+https://topstreams.tv
+https://freestreams.live
+https://sportslive.me
+https://watchseries.stream
+
+# General streaming sites with sports content
+https://123movies.net
+https://watchfree.ac
+https://movie4k.to
+https://putlocker.ws
+https://solarmovie.pe
+https://hdtoday.tv
+https://fmovies.to
+https://kissmovies.io
+https://yesmovies.ag
+https://movieshd.watch
+
+# Live TV streaming platforms
+https://ustvgo.tv
+https://livetv.sx
+https://stream2watch.ws
+https://firstrowsports.tv
+https://ronaldo7.net
+https://bfst.to
+https://sportsbay.org
+https://methstreams.com
+https://nbastream.nu
+https://nflstream.io

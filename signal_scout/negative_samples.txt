@@ -1,0 +1,45 @@
+# Negative samples: Non-streaming sites (use these URLs for training as negative examples)  
+# These represent sites we DON'T want to identify as streaming sites
+
+# News and media sites
+https://cnn.com
+https://bbc.com
+https://reuters.com
+https://espn.com/news
+https://foxnews.com
+https://npr.org
+https://washingtonpost.com
+https://nytimes.com
+https://theguardian.com
+https://ap.org
+
+# E-commerce sites
+https://amazon.com
+https://ebay.com
+https://walmart.com
+https://target.com
+https://bestbuy.com
+https://newegg.com
+https://etsy.com
+https://alibaba.com
+https://shopify.com
+https://wayfair.com
+
+# Technology and informational sites
+https://github.com
+https://stackoverflow.com
+https://wikipedia.org
+https://google.com
+https://microsoft.com
+https://apple.com
+https://reddit.com
+https://youtube.com/about
+https://twitter.com
+https://facebook.com
+
+# Educational and reference sites
+https://harvard.edu
+https://mit.edu
+https://khan.academy.org
+https://coursera.org
+https://w3schools.com

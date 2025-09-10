@@ -28,12 +28,34 @@
       ".cc",
       ".site",
       ".online"
+    ],
+    "seed_queries": [
+      "watch NFL live free",
+      "soccer stream reddit",
+      "NBA live stream free",
+      "MLB streaming sites",
+      "NHL hockey stream",
+      "watch sports online free",
+      "live football stream",
+      "basketball streaming free",
+      "watch sports live tv",
+      "free sports streaming sites"
     ]
   },
   "discovery_settings": {
     "max_concurrent_verifications": 10,
     "request_timeout": 10,
     "verification_confidence_threshold": 50
+  },
+  "v3_crawler_settings": {
+    "crawl_mode": "focused",
+    "max_crawl_depth": 3,
+    "max_concurrent_requests": 5,
+    "crawl_delay": 1,
+    "relevancy_threshold": 0.6,
+    "ai_confidence_threshold": 0.7,
+    "max_pages_per_domain": 20,
+    "enable_autonomous_feedback": true
   },
   "maintenance_settings": {
     "deactivation_hours": 24,
