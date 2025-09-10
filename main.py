@@ -8,7 +8,6 @@ cognitive streaming discovery system with real-time monitoring and control.
 
 import asyncio
 import os
-import subprocess
 import threading
 import time
 from pathlib import Path
@@ -28,6 +27,9 @@ from rich.text import Text
 from rich.table import Table
 from rich.panel import Panel
 from rich.console import Console
+
+# Import the new engine
+from engine import SidelineEngine
 
 
 class PreFlightWidget(Static):
@@ -213,23 +215,17 @@ class AfterActionReportWidget(Static):
     def get_database_stats(self) -> str:
         """Get database statistics if possible"""
         try:
+            import sqlite3
             db_path = self.project_root / "shared_data" / "sites.db"
             if not db_path.exists():
                 return "Database not found"
             
-            # Try to query database
-            result = subprocess.run(
-                ['sqlite3', str(db_path), 'SELECT COUNT(*) FROM sites;'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            
-            if result.returncode == 0:
-                total_sites = result.stdout.strip()
+            # Try to query database using sqlite3 module
+            with sqlite3.connect(str(db_path)) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT COUNT(*) FROM sites;')
+                total_sites = cursor.fetchone()[0]
                 return f"Total Active Sites: {total_sites}"
-            else:
-                return "Database query failed"
                 
         except Exception:
             return "Database access unavailable"
@@ -247,6 +243,7 @@ class ControlPanel(Container):
         super().__init__(**kwargs)
         self.project_root = Path(__file__).parent.absolute()
         self.running_processes = {}
+        self.engine = SidelineEngine()  # Use the engine instead of subprocess calls
     
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -270,24 +267,11 @@ class ControlPanel(Container):
         
         def run_training():
             try:
-                python_exe = self.get_python_executable("scout_venv")
-                script_path = self.project_root / "signal_scout" / "train_model.py"
-                
-                result = subprocess.run(
-                    [str(python_exe), str(script_path)],
-                    cwd=self.project_root / "signal_scout",
-                    capture_output=True,
-                    text=True,
-                    timeout=300
-                )
-                
-                if result.returncode == 0:
+                success = self.engine.train_ai_model()
+                if success:
                     self.call_from_thread(self.update_status, "✅ AI model training completed", "green")
                 else:
-                    self.call_from_thread(self.update_status, f"❌ Training failed: {result.stderr[:50]}...", "red")
-                    
-            except subprocess.TimeoutExpired:
-                self.call_from_thread(self.update_status, "❌ Training timeout", "red")
+                    self.call_from_thread(self.update_status, "❌ Training failed", "red")
             except Exception as e:
                 self.call_from_thread(self.update_status, f"❌ Training error: {str(e)[:50]}...", "red")
         
@@ -300,25 +284,13 @@ class ControlPanel(Container):
         
         def run_scout():
             try:
-                python_exe = self.get_python_executable("scout_venv")
-                
-                result = subprocess.run(
-                    [str(python_exe), "-m", "scrapy", "crawl", "scout"],
-                    cwd=self.project_root / "signal_scout",
-                    capture_output=True,
-                    text=True,
-                    timeout=600  # 10 minute timeout
-                )
-                
-                if result.returncode == 0:
+                success = self.engine.run_scout()
+                if success:
                     self.call_from_thread(self.update_status, "✅ Scout run completed", "green")
                     # Notify app to switch to after-action report
                     self.app.call_from_thread(self.app.show_after_action_report)
                 else:
-                    self.call_from_thread(self.update_status, f"❌ Scout failed: {result.stderr[:50]}...", "red")
-                    
-            except subprocess.TimeoutExpired:
-                self.call_from_thread(self.update_status, "❌ Scout run timeout", "red")
+                    self.call_from_thread(self.update_status, "❌ Scout run failed", "red")
             except Exception as e:
                 self.call_from_thread(self.update_status, f"❌ Scout error: {str(e)[:50]}...", "red")
         
@@ -335,28 +307,23 @@ class ControlPanel(Container):
         
         def run_web_app():
             try:
-                python_exe = self.get_python_executable("app_venv")
-                script_path = self.project_root / "sideline_app" / "app.py"
-                
-                process = subprocess.Popen(
-                    [str(python_exe), str(script_path)],
-                    cwd=self.project_root / "sideline_app",
-                )
-                
-                self.running_processes["web_app"] = process
-                self.call_from_thread(self.update_status, "✅ Web app started (http://localhost:5000)", "green")
-                
-                # Wait for process to complete
-                process.wait()
+                # Use the engine to start the web app (this will run until interrupted)
+                success = self.engine.start_web_app()
                 
                 # Clean up when process ends
                 if "web_app" in self.running_processes:
                     del self.running_processes["web_app"]
-                    self.call_from_thread(self.update_status, "Web app stopped", "white")
+                    if success:
+                        self.call_from_thread(self.update_status, "Web app stopped", "white")
+                    else:
+                        self.call_from_thread(self.update_status, "❌ Web app failed", "red")
                     
             except Exception as e:
                 self.call_from_thread(self.update_status, f"❌ Web app error: {str(e)[:50]}...", "red")
         
+        # Mark that web app is running
+        self.running_processes["web_app"] = True
+        self.update_status("✅ Web app started (http://localhost:5000)", "green")
         threading.Thread(target=run_web_app, daemon=True).start()
     
     @on(Button.Pressed, "#btn-stop-app")
@@ -366,18 +333,9 @@ class ControlPanel(Container):
             self.update_status("No web app running", "yellow")
             return
         
-        try:
-            process = self.running_processes["web_app"]
-            process.terminate()
-            process.wait(timeout=5)
-            del self.running_processes["web_app"]
-            self.update_status("✅ Web app stopped", "green")
-        except subprocess.TimeoutExpired:
-            process.kill()
-            del self.running_processes["web_app"]
-            self.update_status("✅ Web app force stopped", "yellow")
-        except Exception as e:
-            self.update_status(f"❌ Stop error: {str(e)[:50]}...", "red")
+        # For now, just mark as stopped - the actual process will handle KeyboardInterrupt
+        del self.running_processes["web_app"]
+        self.update_status("⚠️  Web app stop requested - use Ctrl+C in terminal", "yellow")
     
     @on(Button.Pressed, "#btn-test")
     def run_full_test(self, event: Button.Pressed) -> None:
@@ -386,37 +344,15 @@ class ControlPanel(Container):
         
         def run_test():
             try:
-                python_exe = self.get_python_executable("scout_venv")
-                
-                # Run a limited scout test
-                result = subprocess.run(
-                    [str(python_exe), "-m", "scrapy", "crawl", "scout", 
-                     "-s", "CLOSESPIDER_PAGECOUNT=5", "-s", "CLOSESPIDER_TIMEOUT=30"],
-                    cwd=self.project_root / "signal_scout",
-                    capture_output=True,
-                    text=True,
-                    timeout=60
-                )
-                
-                if result.returncode == 0:
+                success = self.engine.run_full_test()
+                if success:
                     self.call_from_thread(self.update_status, "✅ System test completed", "green")
                 else:
-                    self.call_from_thread(self.update_status, f"❌ Test failed: {result.stderr[:50]}...", "red")
-                    
-            except subprocess.TimeoutExpired:
-                self.call_from_thread(self.update_status, "❌ Test timeout", "red")
+                    self.call_from_thread(self.update_status, "❌ System test failed", "red")
             except Exception as e:
                 self.call_from_thread(self.update_status, f"❌ Test error: {str(e)[:50]}...", "red")
         
         threading.Thread(target=run_test, daemon=True).start()
-    
-    def get_python_executable(self, venv_name: str) -> Path:
-        """Get Python executable for the specified virtual environment"""
-        venv_path = self.project_root / venv_name
-        if os.name == 'nt':  # Windows
-            return venv_path / "Scripts" / "python.exe"
-        else:  # Unix-like systems
-            return venv_path / "bin" / "python"
 
 
 class SidelineControlCenter(App):
