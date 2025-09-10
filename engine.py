@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-SidelineSignal V3 Advanced Orchestrator Engine
+SidelineSignal V3 Engine Module
 
-Professional automation script for managing all SidelineSignal system processes
+Core engine functions for managing SidelineSignal system processes
 with rich console output and virtual environment isolation.
+This module provides importable functions for orchestrating the system.
 """
 
 import argparse
@@ -19,7 +20,10 @@ from rich import print as rprint
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-class SidelineOrchestrator:
+
+class SidelineEngine:
+    """Core engine class providing all SidelineSignal orchestration functions"""
+    
     def __init__(self):
         self.console = Console()
         self.project_root = Path(__file__).parent.absolute()
@@ -30,10 +34,10 @@ class SidelineOrchestrator:
         
     def print_header(self):
         """Display professional header with system information"""
-        header_text = Text("SidelineSignal V3 Advanced Orchestrator Engine", style="bold cyan")
+        header_text = Text("SidelineSignal V3 Engine", style="bold cyan")
         header_panel = Panel(
             header_text,
-            title="🎯 COMMAND CENTER",
+            title="🎯 CORE ENGINE",
             title_align="center",
             border_style="bright_blue",
             padding=(1, 2)
@@ -50,56 +54,62 @@ class SidelineOrchestrator:
         status_table.add_column("Status", justify="center")
         status_table.add_column("Details", style="dim")
         
+        # Check Python
+        python_status = "✅ OK" if sys.version_info >= (3, 7) else "❌ FAIL"
+        python_details = f"Python {sys.version.split()[0]}"
+        status_table.add_row("Python Runtime", python_status, python_details)
+        
         # Check virtual environments
         scout_venv_status = "✅ OK" if self.scout_venv.exists() else "❌ MISSING"
+        scout_venv_details = f"Path: {self.scout_venv.relative_to(self.project_root)}"
+        status_table.add_row("Scout VirtualEnv", scout_venv_status, scout_venv_details)
+        
         app_venv_status = "✅ OK" if self.app_venv.exists() else "❌ MISSING"
-        
-        # Check AI model
-        model_path = self.scout_dir / "scout_model.pkl"
-        ai_model_status = "✅ TRAINED" if model_path.exists() else "❌ NOT TRAINED"
-        
-        # Check database
-        db_path = self.project_root / "shared_data" / "sites.db"
-        db_status = "✅ INITIALIZED" if db_path.exists() else "❌ NOT INITIALIZED"
+        app_venv_details = f"Path: {self.app_venv.relative_to(self.project_root)}"
+        status_table.add_row("App VirtualEnv", app_venv_status, app_venv_details)
         
         # Check directories
         scout_dir_status = "✅ OK" if self.scout_dir.exists() else "❌ MISSING"
-        app_dir_status = "✅ OK" if self.app_dir.exists() else "❌ MISSING"
+        scout_dir_details = f"Path: {self.scout_dir.relative_to(self.project_root)}"
+        status_table.add_row("Scout Directory", scout_dir_status, scout_dir_details)
         
-        status_table.add_row("Scout Virtual Environment", scout_venv_status, str(self.scout_venv))
-        status_table.add_row("App Virtual Environment", app_venv_status, str(self.app_venv))
-        status_table.add_row("AI Model", ai_model_status, str(model_path))
-        status_table.add_row("Database", db_status, str(db_path))
-        status_table.add_row("Signal Scout Directory", scout_dir_status, str(self.scout_dir))
-        status_table.add_row("Sideline App Directory", app_dir_status, str(self.app_dir))
+        app_dir_status = "✅ OK" if self.app_dir.exists() else "❌ MISSING"
+        app_dir_details = f"Path: {self.app_dir.relative_to(self.project_root)}"
+        status_table.add_row("App Directory", app_dir_status, app_dir_details)
+        
+        # Check AI model
+        model_path = self.scout_dir / "scout_model.pkl"
+        model_status = "✅ TRAINED" if model_path.exists() else "⚠️  NEEDS TRAINING"
+        model_details = "AI classifier ready" if model_path.exists() else "Run training first"
+        status_table.add_row("AI Model", model_status, model_details)
+        
+        # Check database
+        db_path = self.project_root / "shared_data" / "sites.db"
+        db_status = "✅ EXISTS" if db_path.exists() else "⚠️  EMPTY"
+        db_details = "Site database ready" if db_path.exists() else "Will be created on first run"
+        status_table.add_row("Database", db_status, db_details)
         
         self.console.print(status_table)
         self.console.print()
         
-        # Check if any critical components are missing
-        missing_components = []
-        if not self.scout_venv.exists():
-            missing_components.append("Scout virtual environment")
-        if not self.app_venv.exists():
-            missing_components.append("App virtual environment")
-        
-        if missing_components:
-            self.console.print(f"[bold red]❌ CRITICAL: Missing components: {', '.join(missing_components)}[/bold red]")
-            self.console.print("[yellow]Please run the setup commands from the README first.[/yellow]")
+        # Return overall status
+        critical_failures = [scout_venv_status, app_venv_status, scout_dir_status, app_dir_status]
+        if "❌" in critical_failures:
+            self.console.print("[bold red]❌ CRITICAL PREREQUISITES MISSING - System cannot operate[/bold red]")
             return False
-        
-        self.console.print("[bold green]✅ All prerequisites satisfied - System ready for operation[/bold green]")
-        return True
+        else:
+            self.console.print("[bold green]✅ All critical prerequisites satisfied[/bold green]")
+            return True
 
     def get_python_executable(self, venv_path):
-        """Get the correct Python executable for the given virtual environment"""
+        """Get the Python executable for a virtual environment"""
         if os.name == 'nt':  # Windows
             return venv_path / "Scripts" / "python.exe"
         else:  # Unix-like systems
             return venv_path / "bin" / "python"
 
     def run_with_progress(self, command, description, working_dir=None):
-        """Execute command with rich progress indicator"""
+        """Execute a command with rich progress display"""
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -107,22 +117,24 @@ class SidelineOrchestrator:
         ) as progress:
             task = progress.add_task(description, total=None)
             
+            # Execute the command
             try:
                 result = subprocess.run(
                     command,
                     shell=True,
-                    check=True,
+                    cwd=working_dir,
                     capture_output=True,
                     text=True,
-                    cwd=working_dir
+                    check=True
                 )
-                progress.remove_task(task)
-                self.console.print(f"[bold green]✅ {description} - Completed successfully[/bold green]")
+                progress.update(task, completed=True)
+                self.console.print(f"[green]✅ {description} completed successfully[/green]")
                 return result
             except subprocess.CalledProcessError as e:
-                progress.remove_task(task)
-                self.console.print(f"[bold red]❌ {description} - Failed[/bold red]")
-                self.console.print(f"[red]Error: {e.stderr}[/red]")
+                progress.update(task, completed=True)
+                self.console.print(f"[red]❌ {description} failed[/red]")
+                if e.stderr:
+                    self.console.print(f"[red]Error output: {e.stderr[:200]}...[/red]")
                 raise
 
     def train_ai_model(self):
@@ -132,76 +144,79 @@ class SidelineOrchestrator:
         python_exe = self.get_python_executable(self.scout_venv)
         train_script = self.scout_dir / "train_model.py"
         
-        command = f'"{python_exe}" "{train_script}"'
+        if not train_script.exists():
+            self.console.print(f"[red]❌ Training script not found: {train_script}[/red]")
+            return False
+            
+        train_command = f'"{python_exe}" "{train_script}"'
         
         try:
             self.run_with_progress(
-                command,
-                "Training AI classifier with updated samples",
+                train_command,
+                "Training AI classification model",
                 working_dir=self.scout_dir
             )
             
             # Verify model was created
             model_path = self.scout_dir / "scout_model.pkl"
             if model_path.exists():
-                self.console.print(f"[bold green]🎯 AI model successfully saved to: {model_path}[/bold green]")
+                self.console.print("[green]🎯 AI model training completed successfully[/green]")
+                return True
             else:
-                self.console.print("[bold red]❌ Model training completed but file not found[/bold red]")
+                self.console.print("[red]❌ Model file not created - training may have failed[/red]")
+                return False
                 
         except subprocess.CalledProcessError:
-            self.console.print("[bold red]💥 AI model training failed - Check error output above[/bold red]")
-            sys.exit(1)
+            self.console.print("[red]💥 AI model training failed - Check error output above[/red]")
+            return False
 
     def run_scout(self):
-        """Execute the V3 Scrapy-based cognitive crawler"""
-        self.console.print("[bold blue]🕷️ LAUNCHING V3 COGNITIVE CRAWLER[/bold blue]")
+        """Execute the Scrapy-based cognitive crawler"""
+        self.console.print("[bold blue]🕷️  LAUNCHING V3 COGNITIVE CRAWLER[/bold blue]")
         
         python_exe = self.get_python_executable(self.scout_venv)
-        
-        # Run Scrapy crawler command
-        command = f'"{python_exe}" -m scrapy crawl scout'
+        scout_command = f'"{python_exe}" -m scrapy crawl scout'
         
         try:
             self.run_with_progress(
-                command,
-                "Executing Scrapy V3 cognitive discovery engine",
+                scout_command,
+                "Running cognitive crawler discovery engine",
                 working_dir=self.scout_dir
             )
-            
-            # Display log information
-            log_path = self.scout_dir / "scout.log"
-            if log_path.exists():
-                self.console.print(f"[bold green]📝 Scout logs available at: {log_path}[/bold green]")
-                self.console.print("[yellow]Tip: Use 'tail -f signal_scout/scout.log' to monitor real-time activity[/yellow]")
-            
+            self.console.print("[green]🎯 Scout crawler completed successfully[/green]")
+            return True
         except subprocess.CalledProcessError:
-            self.console.print("[bold red]💥 Scout run failed - Check error output above[/bold red]")
-            sys.exit(1)
+            self.console.print("[red]💥 Scout crawler failed - Check error output above[/red]")
+            return False
 
     def start_web_app(self):
         """Start the Sideline monitoring web application"""
-        self.console.print("[bold blue]🌐 STARTING SIDELINE MONITORING WEB APPLICATION[/bold blue]")
+        self.console.print("[bold blue]🌐 STARTING SIDELINE WEB APPLICATION[/bold blue]")
         
         python_exe = self.get_python_executable(self.app_venv)
         app_script = self.app_dir / "app.py"
         
-        command = f'"{python_exe}" "{app_script}"'
-        
-        self.console.print("[yellow]⚠️  Web application will run in foreground mode[/yellow]")
-        self.console.print("[yellow]   Press Ctrl+C to stop the server[/yellow]")
-        self.console.print("[yellow]   Access URL: http://localhost:5000[/yellow]")
-        self.console.print()
+        if not app_script.exists():
+            self.console.print(f"[red]❌ Web app script not found: {app_script}[/red]")
+            return False
+            
+        self.console.print("[yellow]🚀 Starting web application server...[/yellow]")
+        self.console.print("[dim]Press Ctrl+C to stop the server[/dim]")
         
         try:
-            # Run without progress indicator since this is a long-running process
-            self.console.print("[bold green]🚀 Starting Flask application...[/bold green]")
-            subprocess.run(command, shell=True, check=True, cwd=self.app_dir)
-            
+            # Start the web application (this will run until interrupted)
+            subprocess.run(
+                f'"{python_exe}" "{app_script}"',
+                shell=True,
+                cwd=self.app_dir,
+                check=True
+            )
         except KeyboardInterrupt:
             self.console.print("\n[bold yellow]🛑 Web application stopped by user[/bold yellow]")
+            return True
         except subprocess.CalledProcessError:
             self.console.print("[bold red]💥 Web application failed to start - Check error output above[/bold red]")
-            sys.exit(1)
+            return False
 
     def run_full_test(self):
         """Execute a comprehensive system test"""
@@ -214,7 +229,8 @@ class SidelineOrchestrator:
             model_path = self.scout_dir / "scout_model.pkl"
             if not model_path.exists():
                 self.console.print("[yellow]AI model not found - Training new model...[/yellow]")
-                self.train_ai_model()
+                if not self.train_ai_model():
+                    return False
             else:
                 self.console.print("[green]✅ AI model already trained and ready[/green]")
             
@@ -248,25 +264,16 @@ class SidelineOrchestrator:
             else:
                 self.console.print("[red]❌ Database not found - Scout may not have completed successfully[/red]")
             
-            # Step 4: Web app validation (quick startup test)
+            # Step 4: Quick web app validation  
             self.console.print("\n[bold cyan]Test Step 4: Web Application Validation[/bold cyan]")
-            self.console.print("[yellow]Note: Web app test will start server briefly and then stop[/yellow]")
-            
             python_exe_app = self.get_python_executable(self.app_venv)
             app_script = self.app_dir / "app.py"
             
-            # Test if the app can start (run for 3 seconds then kill)
-            import signal
-            import threading
-            
-            def timeout_handler():
-                time.sleep(3)
-                os.kill(os.getpid(), signal.SIGTERM)
-            
             try:
-                timeout_thread = threading.Thread(target=timeout_handler)
-                timeout_thread.daemon = True
-                timeout_thread.start()
+                # Brief startup test (will timeout quickly)
+                def timeout_handler():
+                    time.sleep(5)
+                    return
                 
                 subprocess.run(f'"{python_exe_app}" "{app_script}"', shell=True, cwd=self.app_dir, timeout=5)
                 
@@ -284,22 +291,24 @@ class SidelineOrchestrator:
                 border_style="green"
             )
             self.console.print(summary_panel)
+            return True
             
         except Exception as e:
             self.console.print(f"[bold red]💥 System test failed: {e}[/bold red]")
-            sys.exit(1)
+            return False
+
 
 def main():
-    """Main orchestrator entry point"""
+    """Main CLI entry point (backwards compatibility)"""
     parser = argparse.ArgumentParser(
-        description="SidelineSignal V3 Advanced Orchestrator Engine",
+        description="SidelineSignal V3 Engine",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python run.py --train                  # Train the AI classification model
-  python run.py --scout                  # Run the V3 cognitive crawler
-  python run.py --app                    # Start the monitoring web application
-  python run.py --full-test              # Run comprehensive system test
+  python engine.py --train                  # Train the AI classification model
+  python engine.py --scout                  # Run the cognitive crawler
+  python engine.py --app                    # Start the monitoring web application
+  python engine.py --full-test              # Run comprehensive system test
         """
     )
     
@@ -312,7 +321,7 @@ Examples:
     parser.add_argument(
         "--scout",
         action="store_true",
-        help="Execute the V3 Scrapy-based cognitive crawler"
+        help="Execute the Scrapy-based cognitive crawler"
     )
     
     parser.add_argument(
@@ -334,37 +343,43 @@ Examples:
         parser.print_help()
         sys.exit(1)
     
-    # Initialize orchestrator
-    orchestrator = SidelineOrchestrator()
+    # Initialize engine
+    engine = SidelineEngine()
     
     # Display header and check prerequisites
-    orchestrator.print_header()
+    engine.print_header()
     
-    if not orchestrator.check_prerequisites():
+    if not engine.check_prerequisites():
         sys.exit(1)
     
     # Execute requested actions
+    success = True
     try:
         if args.train:
-            orchestrator.train_ai_model()
+            success &= engine.train_ai_model()
         
         if args.scout:
-            orchestrator.run_scout()
+            success &= engine.run_scout()
         
         if args.app:
-            orchestrator.start_web_app()
+            success &= engine.start_web_app()
         
         if args.full_test:
-            orchestrator.run_full_test()
+            success &= engine.run_full_test()
             
-        orchestrator.console.print("\n[bold green]🎯 All requested operations completed successfully![/bold green]")
+        if success:
+            engine.console.print("\n[bold green]🎯 All requested operations completed successfully![/bold green]")
+        else:
+            engine.console.print("\n[bold red]❌ Some operations failed![/bold red]")
+            sys.exit(1)
         
     except KeyboardInterrupt:
-        orchestrator.console.print("\n[bold yellow]🛑 Operation interrupted by user[/bold yellow]")
+        engine.console.print("\n[bold yellow]🛑 Operation interrupted by user[/bold yellow]")
         sys.exit(1)
     except Exception as e:
-        orchestrator.console.print(f"\n[bold red]💥 Unexpected error: {e}[/bold red]")
+        engine.console.print(f"\n[bold red]💥 Unexpected error: {e}[/bold red]")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
