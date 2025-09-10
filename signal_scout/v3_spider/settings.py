@@ -1,11 +1,7 @@
 # Scrapy settings for v3_spider project
 #
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+# Professional-grade configuration for SidelineSignal V3 autonomous crawler
+# Configured for live fire testing and production monitoring
 
 BOT_NAME = "v3_spider"
 
@@ -14,74 +10,79 @@ NEWSPIDER_MODULE = "v3_spider.spiders"
 
 ADDONS = {}
 
+# Professional Logging Configuration
+LOG_LEVEL = 'INFO'
+LOG_FILE = '../scout.log'
+LOG_FORMAT = '[%(asctime)s] [%(levelname)s] %(message)s'
+LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "v3_spider (+http://www.yourdomain.com)"
+# Live Fire Test Configuration - 5 minute timeout
+CLOSESPIDER_TIMEOUT = 300  # 300 seconds = 5 minutes
 
-# Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+# Crawl responsibly by identifying yourself
+USER_AGENT = "SidelineSignal-V3-Scout/1.0 (+https://github.com/elliotttmiller/SidelineSignal)"
 
-# Concurrency and throttling settings
-#CONCURRENT_REQUESTS = 16
-CONCURRENT_REQUESTS_PER_DOMAIN = 1
+# Obey robots.txt rules (disabled for streaming sites)
+ROBOTSTXT_OBEY = False
+
+# Concurrency and throttling settings optimized for streaming site discovery
+CONCURRENT_REQUESTS = 5
+CONCURRENT_REQUESTS_PER_DOMAIN = 2
 DOWNLOAD_DELAY = 1
+RANDOMIZE_DOWNLOAD_DELAY = 0.5
 
-# Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+# Request retry configuration
+RETRY_ENABLED = True
+RETRY_TIMES = 2
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 
-# Disable Telnet Console (enabled by default)
-#TELNETCONSOLE_ENABLED = False
+# Depth limit for focused crawling
+DEPTH_LIMIT = 3
 
-# Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-#    "Accept-Language": "en",
-#}
+# Page count limit for testing
+CLOSESPIDER_PAGECOUNT = 100
 
-# Enable or disable spider middlewares
-# See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "v3_spider.middlewares.V3SpiderSpiderMiddleware": 543,
-#}
+# Enable autothrottle for respectful crawling
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_START_DELAY = 1
+AUTOTHROTTLE_MAX_DELAY = 3
+AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
+AUTOTHROTTLE_DEBUG = False
 
-# Enable or disable downloader middlewares
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "v3_spider.middlewares.V3SpiderDownloaderMiddleware": 543,
-#}
+# Disable telnet console
+TELNETCONSOLE_ENABLED = False
 
-# Enable or disable extensions
-# See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    "scrapy.extensions.telnet.TelnetConsole": None,
-#}
+# Default request headers
+DEFAULT_REQUEST_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en",
+    "Accept-Encoding": "gzip, deflate",
+    "Cache-Control": "no-cache",
+}
 
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "v3_spider.pipelines.V3SpiderPipeline": 300,
-#}
+# Downloader middlewares
+DOWNLOADER_MIDDLEWARES = {
+    "scrapy.downloadermiddlewares.retry.RetryMiddleware": 90,
+    "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": 110,
+}
 
-# Enable and configure the AutoThrottle extension (disabled by default)
-# See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
-# The initial download delay
-#AUTOTHROTTLE_START_DELAY = 5
-# The maximum download delay to be set in case of high latencies
-#AUTOTHROTTLE_MAX_DELAY = 60
-# The average number of requests Scrapy should be sending in parallel to
-# each remote server
-#AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
-# Enable showing throttling stats for every response received:
-#AUTOTHROTTLE_DEBUG = False
+# Enable stats collection
+STATS_CLASS = 'scrapy.statscollectors.MemoryStatsCollector'
 
-# Enable and configure HTTP caching (disabled by default)
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
+# Disable cookies for better crawling
+COOKIES_ENABLED = False
+
+# Feed export settings
+FEED_EXPORT_ENCODING = "utf-8"
+
+# Memory usage optimization
+MEMUSAGE_ENABLED = True
+MEMUSAGE_LIMIT_MB = 2048
+MEMUSAGE_WARNING_MB = 1024
+
+# Enable response caching for development
 #HTTPCACHE_ENABLED = True
 #HTTPCACHE_EXPIRATION_SECS = 0
 #HTTPCACHE_DIR = "httpcache"
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
-
-# Set settings whose default value is deprecated to a future-proof value
-FEED_EXPORT_ENCODING = "utf-8"
