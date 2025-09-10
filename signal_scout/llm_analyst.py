@@ -100,29 +100,35 @@ class LLMAnalyst:
 
     def get_cognitive_analysis(self, content: str, url: str = "") -> Dict[str, Any]:
         """
-        Perform cognitive analysis of content using the Hugging Face LLM.
-
-        This is the main entry point for the V5 cognitive verification stage.
+        V6.0 COGNITIVE ANALYSIS ENGINE
+        
+        Performs Chain-of-Thought with Self-Critique analysis using the Hugging Face LLM.
+        This is the core of the V6.0 cognitive verification stage with full reasoning audit.
 
         Args:
             content: Raw text content from the website
             url: URL of the website (optional, for context)
 
         Returns:
-            Dictionary containing structured LLM analysis results
+            Dictionary containing structured V6.0 LLM analysis results with full reasoning process
         """
         if not self.api_key:
             logger.error("Hugging Face API key not available")
             return {
                 "service_name": "Unknown",
-                "primary_category": "Unknown",
-                "confidence_reasoning": "Hugging Face API key not available",
-                "is_streaming_portal": False,
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": "Analysis unavailable - Hugging Face API key not configured",
+                    "hypothesis": "Cannot form hypothesis without API access",
+                    "self_critique": "Unable to perform self-critique without LLM access",
+                    "conclusion": "Default negative conclusion due to API unavailability"
+                },
+                "final_confidence_score": 0,
                 "error": "API key not configured"
             }
 
         try:
-            # Prepare the cognitive prompt
+            # Prepare the V6.0 cognitive prompt
             prompt = self._craft_cognitive_prompt(content, url)
 
             # Get LLM settings
@@ -142,7 +148,7 @@ class LLMAnalyst:
             }
 
             # Make the Hugging Face API request
-            logger.info(f"Sending cognitive analysis request to Hugging Face for: {url}")
+            logger.info(f"V6.0 Cognitive Analysis: Sending structured reasoning request to Hugging Face for: {url}")
 
             response = requests.post(
                 f"{api_url}/models/{model_name}",
@@ -164,14 +170,14 @@ class LLMAnalyst:
             else:
                 llm_response = str(response_data)
 
-            logger.info(f"Hugging Face raw response: {llm_response}")
+            logger.info(f"V6.0 Cognitive Engine raw response: {llm_response}")
 
-            # Parse JSON response with robust error handling
+            # Parse V6.0 structured reasoning JSON response
             analysis_result = self._parse_llm_response(llm_response)
 
-            logger.info(f"LLM cognitive analysis complete for {url}: "
-                        f"Category={analysis_result.get('primary_category')} "
-                        f"Streaming={analysis_result.get('is_streaming_portal')}")
+            logger.info(f"V6.0 Cognitive Analysis complete for {url}: "
+                        f"Streaming={analysis_result.get('is_sports_streaming_site')} "
+                        f"Confidence={analysis_result.get('final_confidence_score')}")
 
             return analysis_result
 
@@ -179,27 +185,37 @@ class LLMAnalyst:
             logger.error(f"Hugging Face API request failed for {url}: {e}")
             return {
                 "service_name": "Unknown",
-                "primary_category": "Error",
-                "confidence_reasoning": f"Hugging Face API request failed: {str(e)}",
-                "is_streaming_portal": False,
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": f"Analysis failed due to API request error: {str(e)}",
+                    "hypothesis": "Cannot form hypothesis due to API communication failure",
+                    "self_critique": "Self-critique unavailable - API request failed",
+                    "conclusion": "Default negative conclusion due to API request failure"
+                },
+                "final_confidence_score": 0,
                 "error": f"API request error: {str(e)}"
             }
         except Exception as e:
-            logger.error(f"LLM cognitive analysis failed for {url}: {e}")
+            logger.error(f"V6.0 Cognitive Analysis failed for {url}: {e}")
             return {
-                "service_name": "Unknown",
-                "primary_category": "Error",
-                "confidence_reasoning": f"LLM analysis failed: {str(e)}",
-                "is_streaming_portal": False,
+                "service_name": "Unknown", 
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": f"Critical analysis failure: {str(e)}",
+                    "hypothesis": "Cannot form hypothesis due to system error",
+                    "self_critique": "Self-critique unavailable due to system failure", 
+                    "conclusion": "Default negative conclusion due to critical error"
+                },
+                "final_confidence_score": 0,
                 "error": str(e)
             }
 
     def _craft_cognitive_prompt(self, content: str, url: str) -> str:
         """
-        Engineer the state-of-the-art cognitive prompt for maximum reliability.
-
-        This implements the meticulously engineered prompt with role-playing,
-        few-shot learning, and structured output requirements optimized for Hugging Face models.
+        V6.0 STATE-OF-THE-ART COGNITIVE FRAMEWORK
+        
+        This implements the revolutionary Chain-of-Thought with Self-Critique methodology,
+        creating a transparent, auditable, and hyper-reliable cognitive analysis engine.
         """
         # Truncate content to prevent token overflow
         max_content_length = 2000
@@ -208,31 +224,31 @@ class LLMAnalyst:
 
         prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
-You are an expert web content analyst. Your task is to analyze the provided text from a website \
-and determine its purpose. You must respond ONLY with a single, valid JSON object. \
-Do not include any other text or explanations.
+You are a world-class web intelligence analyst. Your **sole and exclusive mission** is to determine if a website's primary purpose is to provide **free access to live or on-demand streams of sporting events**.
+
+You must follow this **Cognitive Framework** precisely:
+1. **<Initial_Analysis>**: Read the provided text. Identify keywords, themes, and any explicit mentions of sports, leagues, streaming, or schedules.
+2. **<Formulate_Hypothesis>**: Based on your initial analysis, form a preliminary hypothesis about the site's purpose.
+3. **<Self_Critique>**: Critically evaluate your own hypothesis. Are there alternative interpretations of the text? Could the keywords be misleading? Is there any evidence that contradicts your initial assessment? This is the most important step.
+4. **<Final_Conclusion>**: Based on your hypothesis and your self-critique, make a final, definitive judgment.
+
+You must respond ONLY with a single, valid JSON object. Do not include any other text. The JSON object must have the following structure:
 
 <|eot_id|><|start_header_id|>user<|end_header_id|>
 
-Here is an example of the perfect response format:
 {{
-  "service_name": "StreamEast",
-  "primary_category": "Sports Streaming",
-  "confidence_reasoning": "The text explicitly mentions live NFL games, provides streaming links, \
-and includes sports schedules.",
-  "is_streaming_portal": true
+  "service_name": "The user-friendly name of the service.",
+  "is_sports_streaming_site": "A boolean (true or false).",
+  "full_reasoning_process": {{
+    "initial_analysis": "Your detailed notes from step 1.",
+    "hypothesis": "Your hypothesis from step 2.",
+    "self_critique": "Your critical evaluation from step 3.",
+    "conclusion": "Your final conclusion from step 4."
+  }},
+  "final_confidence_score": "An integer between 0 and 100 representing your confidence in your final conclusion."
 }}
 
-Categories to choose from:
-- "Sports Streaming" (for sites that stream live sports)
-- "General Streaming" (for sites that stream movies/TV shows)
-- "Sports News" (for sports news and information sites)
-- "General News" (for general news websites)
-- "E-commerce" (for shopping and retail sites)
-- "Social Media" (for social platforms and forums)
-- "Other" (for sites that don't fit other categories)
-
-Now, analyze the following text and provide your response in the exact JSON format shown above:
+Analyze this text:
 
 URL: {url}
 
@@ -245,30 +261,50 @@ Content:
 
     def _parse_llm_response(self, llm_response: str) -> Dict[str, Any]:
         """
-        Parse LLM response with robust JSON handling.
-
-        Implements comprehensive error handling and fallback parsing
-        to ensure machine readability of LLM outputs.
+        V6.0 COGNITIVE RESPONSE PARSER
+        
+        Parses the new structured reasoning format with full cognitive audit trail.
+        Implements comprehensive error handling for the Chain-of-Thought JSON structure.
         """
         try:
             # Try direct JSON parsing first
             result = json.loads(llm_response)
 
-            # Validate required fields
+            # Validate V6.0 required fields
             required_fields = [
-                "service_name", "primary_category",
-                "confidence_reasoning", "is_streaming_portal"
+                "service_name", "is_sports_streaming_site",
+                "full_reasoning_process", "final_confidence_score"
             ]
+            
+            # Validate main fields
             for field in required_fields:
                 if field not in result:
-                    logger.warning(f"LLM response missing required field: {field}")
-                    result[field] = ("Unknown" if field != "is_streaming_portal"
-                                     else False)
+                    logger.warning(f"V6.0 LLM response missing required field: {field}")
+                    if field == "is_sports_streaming_site":
+                        result[field] = False
+                    elif field == "full_reasoning_process":
+                        result[field] = {
+                            "initial_analysis": "Parse error - field missing",
+                            "hypothesis": "Parse error - field missing", 
+                            "self_critique": "Parse error - field missing",
+                            "conclusion": "Parse error - field missing"
+                        }
+                    elif field == "final_confidence_score":
+                        result[field] = 0
+                    else:
+                        result[field] = "Unknown"
+
+            # Validate reasoning process structure
+            if "full_reasoning_process" in result and isinstance(result["full_reasoning_process"], dict):
+                reasoning_fields = ["initial_analysis", "hypothesis", "self_critique", "conclusion"]
+                for field in reasoning_fields:
+                    if field not in result["full_reasoning_process"]:
+                        result["full_reasoning_process"][field] = "Missing reasoning step"
 
             return result
 
         except json.JSONDecodeError:
-            logger.warning("Failed to parse LLM JSON response, attempting fallback parsing")
+            logger.warning("Failed to parse V6.0 LLM JSON response, attempting fallback parsing")
 
             # Fallback: Extract JSON from response if it contains other text
             try:
@@ -280,30 +316,40 @@ Content:
                     json_str = llm_response[start_idx:end_idx + 1]
                     result = json.loads(json_str)
 
-                    # Validate and fill missing fields
-                    required_fields = [
-                        "service_name", "primary_category",
-                        "confidence_reasoning", "is_streaming_portal"
-                    ]
-                    for field in required_fields:
-                        if field not in result:
-                            result[field] = ("Unknown" if field != "is_streaming_portal"
-                                         else False)
+                    # Validate and fill missing V6.0 fields
+                    if "service_name" not in result:
+                        result["service_name"] = "Unknown"
+                    if "is_sports_streaming_site" not in result:
+                        result["is_sports_streaming_site"] = False
+                    if "full_reasoning_process" not in result:
+                        result["full_reasoning_process"] = {
+                            "initial_analysis": "Fallback parsing - limited analysis available",
+                            "hypothesis": "Unable to extract hypothesis from malformed response", 
+                            "self_critique": "Self-critique unavailable due to parsing issues",
+                            "conclusion": "Conclusion reached through fallback parsing"
+                        }
+                    if "final_confidence_score" not in result:
+                        result["final_confidence_score"] = 50
 
-                    logger.info("Successfully parsed JSON from LLM response using fallback method")
+                    logger.info("Successfully parsed V6.0 JSON from LLM response using fallback method")
                     return result
 
             except Exception as fallback_error:
-                logger.error(f"Fallback JSON parsing also failed: {fallback_error}")
+                logger.error(f"V6.0 fallback JSON parsing also failed: {fallback_error}")
 
-            # Final fallback: Return default structure
-            logger.error(f"Could not parse LLM response as JSON: {llm_response}")
+            # Final fallback: Return V6.0 compliant default structure
+            logger.error(f"Could not parse V6.0 LLM response as JSON: {llm_response}")
             return {
                 "service_name": "Unknown",
-                "primary_category": "Other",
-                "confidence_reasoning": "Failed to parse LLM response",
-                "is_streaming_portal": False,
-                "parse_error": "JSON parsing failed"
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": "Failed to parse LLM response - no analysis available",
+                    "hypothesis": "Unable to form hypothesis due to parsing failure",
+                    "self_critique": "Cannot perform self-critique on unparseable response",  
+                    "conclusion": "Default conclusion due to complete parsing failure"
+                },
+                "final_confidence_score": 0,
+                "parse_error": "Complete JSON parsing failure"
             }
 
     def is_available(self) -> bool:

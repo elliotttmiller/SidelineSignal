@@ -316,63 +316,85 @@ class ScoutSpider(scrapy.Spider):
     
     def _perform_llm_analysis(self, url, page_content):
         """
-        Perform V4 LLM cognitive analysis on the page content.
+        V6.0 COGNITIVE ANALYSIS ENGINE
         
-        This is the final verification stage of the V4 Hybrid Intelligence pipeline.
+        Performs Chain-of-Thought with Self-Critique analysis - the core of V6.0 architecture.
+        This is the state-of-the-art cognitive verification stage with full reasoning audit.
         """
         if not self.llm_analyst:
-            logger.warning(f"LLM Analyst not available for cognitive analysis: {url}")
+            logger.warning(f"V6.0 LLM Analyst not available for cognitive analysis: {url}")
             return {
                 "service_name": "Unknown",
-                "primary_category": "Unknown", 
-                "confidence_reasoning": "LLM Analyst not available",
-                "is_streaming_portal": False,
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": "Analysis unavailable - LLM Analyst not initialized",
+                    "hypothesis": "Cannot form hypothesis without LLM access",
+                    "self_critique": "Self-critique unavailable - system error",
+                    "conclusion": "Default negative conclusion due to system unavailability"
+                },
+                "final_confidence_score": 0,
                 "error": "LLM Analyst not initialized"
             }
         
         try:
             self.stats['llm_analyses_attempted'] += 1
             
-            logger.info(f"V4 LLM COGNITIVE ANALYSIS STARTING for: {url}")
+            logger.info(f"V6.0 COGNITIVE ANALYSIS ENGINE STARTING for: {url}")
             
-            # Get cognitive analysis from LLM
+            # Get V6.0 cognitive analysis with structured reasoning from LLM
             llm_result = self.llm_analyst.get_cognitive_analysis(page_content, url)
             
             if 'error' not in llm_result:
                 self.stats['llm_analyses_successful'] += 1
                 
-                if llm_result.get('is_streaming_portal', False):
+                if llm_result.get('is_sports_streaming_site', False):
                     self.stats['llm_verified_streaming_sites'] += 1
-                    logger.info(f"V4 LLM VERIFICATION SUCCESS: {url} verified as streaming portal - "
+                    logger.info(f"V6.0 COGNITIVE VERIFICATION SUCCESS: {url} verified as streaming site - "
                                f"Service: {llm_result.get('service_name')} "
-                               f"Category: {llm_result.get('primary_category')}")
+                               f"Confidence: {llm_result.get('final_confidence_score')}")
+                    
+                    # Log the structured reasoning process
+                    reasoning = llm_result.get('full_reasoning_process', {})
+                    logger.info(f"V6.0 REASONING AUDIT for {url}:")
+                    logger.info(f"  Analysis: {reasoning.get('initial_analysis', 'N/A')[:100]}...")
+                    logger.info(f"  Hypothesis: {reasoning.get('hypothesis', 'N/A')[:100]}...")
+                    logger.info(f"  Self-Critique: {reasoning.get('self_critique', 'N/A')[:100]}...")
+                    logger.info(f"  Conclusion: {reasoning.get('conclusion', 'N/A')[:100]}...")
                 else:
-                    logger.info(f"V4 LLM ANALYSIS: {url} classified as non-streaming - "
-                               f"Category: {llm_result.get('primary_category')}")
+                    logger.info(f"V6.0 COGNITIVE ANALYSIS: {url} classified as non-streaming - "
+                               f"Confidence: {llm_result.get('final_confidence_score')}")
             else:
-                logger.warning(f"V4 LLM analysis had errors for {url}: {llm_result.get('error')}")
+                logger.warning(f"V6.0 Cognitive Analysis had errors for {url}: {llm_result.get('error')}")
             
             return llm_result
             
         except Exception as e:
-            logger.error(f"V4 LLM cognitive analysis failed for {url}: {e}")
+            logger.error(f"V6.0 Cognitive Analysis failed for {url}: {e}")
             return {
                 "service_name": "Unknown",
-                "primary_category": "Error",
-                "confidence_reasoning": f"LLM analysis failed: {str(e)}",
-                "is_streaming_portal": False,
+                "is_sports_streaming_site": False,
+                "full_reasoning_process": {
+                    "initial_analysis": f"Critical analysis failure: {str(e)}",
+                    "hypothesis": "Cannot form hypothesis due to system error",
+                    "self_critique": "Self-critique unavailable due to system failure",
+                    "conclusion": "Default negative conclusion due to critical error"
+                },
+                "final_confidence_score": 0,
                 "error": str(e)
             }
     
     def _write_url_to_database(self, url, verification_result, llm_analysis_result=None):
         """
-        Write successfully verified URL to the shared database with V4 LLM enrichment.
+        V6.0 DATABASE INTEGRATION 
+        
+        Write successfully verified URL to database with full cognitive reasoning audit trail.
+        Stores the complete Chain-of-Thought process for transparent AI decision tracking.
         """
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Extract site name from LLM or fallback to URL parsing
+            # Extract site name from V6.0 LLM result or fallback to URL parsing
             if llm_analysis_result and llm_analysis_result.get('service_name') != 'Unknown':
                 site_name = llm_analysis_result['service_name']
             else:
@@ -381,52 +403,56 @@ class ScoutSpider(scrapy.Spider):
             confidence_score = verification_result.get('overall_confidence', 0)
             timestamp = datetime.now()
             
-            # Extract LLM data
+            # Extract V6.0 LLM cognitive data
             llm_verified = None
-            category = None
-            llm_reasoning = None
+            llm_full_reasoning = None
             
             if llm_analysis_result and 'error' not in llm_analysis_result:
-                llm_verified = llm_analysis_result.get('is_streaming_portal', False)
-                category = llm_analysis_result.get('primary_category', 'Unknown')
-                llm_reasoning = llm_analysis_result.get('confidence_reasoning', '')
+                llm_verified = llm_analysis_result.get('is_sports_streaming_site', False)
+                # Serialize the complete reasoning process for audit trail
+                reasoning_process = llm_analysis_result.get('full_reasoning_process', {})
+                if reasoning_process:
+                    llm_full_reasoning = json.dumps(reasoning_process, ensure_ascii=False)
             
             # Check if URL already exists
             cursor.execute("SELECT id FROM sites WHERE url = ?", (url,))
             existing = cursor.fetchone()
             
             if existing:
-                # Update existing entry with V4 LLM data
+                # Update existing entry with V6.0 cognitive reasoning
                 cursor.execute("""
                     UPDATE sites 
                     SET last_verified = ?, confidence_score = ?, is_active = 1, status = 'active',
-                        name = ?, llm_verified = ?, category = ?, llm_reasoning = ?
+                        name = ?, llm_full_reasoning = ?
                     WHERE url = ?
-                """, (timestamp, confidence_score, site_name, llm_verified, category, llm_reasoning, url))
-                logger.info(f"V4 URL successfully updated in database with LLM enrichment: {url}")
+                """, (timestamp, confidence_score, site_name, llm_full_reasoning, url))
+                logger.info(f"V6.0 URL successfully updated in database with cognitive reasoning: {url}")
             else:
-                # Insert new entry with V4 LLM data
+                # Insert new entry with V6.0 cognitive reasoning
                 cursor.execute("""
                     INSERT INTO sites (name, url, source, last_verified, confidence_score, is_active, status, 
-                                     llm_verified, category, llm_reasoning)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (site_name, url, 'v4_hybrid_discovery', timestamp, confidence_score, 1, 'active',
-                      llm_verified, category, llm_reasoning))
-                logger.info(f"V4 URL successfully written to database with LLM enrichment: {url}")
+                                     llm_full_reasoning)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (site_name, url, 'v6_cognitive_discovery', timestamp, confidence_score, 1, 'active',
+                      llm_full_reasoning))
+                logger.info(f"V6.0 URL successfully written to database with cognitive reasoning: {url}")
             
             conn.commit()
             conn.close()
             
             self.stats['urls_written_to_database'] += 1
             
-            # Log the V4 enrichment details
+            # Log the V6.0 cognitive enrichment details
             if llm_analysis_result and 'error' not in llm_analysis_result:
-                logger.info(f"V4 HYBRID INTELLIGENCE COMPLETE: {url} -> "
-                           f"Name: {site_name}, Category: {category}, "
-                           f"LLM Verified: {llm_verified}")
+                confidence = llm_analysis_result.get('final_confidence_score', 0)
+                is_streaming = llm_analysis_result.get('is_sports_streaming_site', False)
+                
+                logger.info(f"V6.0 COGNITIVE ARCHITECTURE COMPLETE: {url} -> "
+                           f"Name: {site_name}, Streaming: {is_streaming}, "
+                           f"Confidence: {confidence}, Full reasoning stored in database")
             
         except Exception as e:
-            logger.error(f"Failed to write V4 URL to database {url}: {e}")
+            logger.error(f"Failed to write V6.0 URL to database {url}: {e}")
     
     def _extract_site_name(self, url):
         """Extract a clean site name from URL."""
