@@ -1,12 +1,12 @@
-# Scrapy settings for v3_spider project
+# Scrapy settings for spider project
 #
 # Professional-grade configuration for SidelineSignal V3 autonomous crawler
 # Configured for live fire testing and production monitoring
 
-BOT_NAME = "v3_spider"
+BOT_NAME = "spider"
 
-SPIDER_MODULES = ["v3_spider.spiders"]
-NEWSPIDER_MODULE = "v3_spider.spiders"
+SPIDER_MODULES = ["spider.spiders"]
+NEWSPIDER_MODULE = "spider.spiders"
 
 ADDONS = {}
 

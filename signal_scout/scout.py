@@ -20,7 +20,7 @@ from verification import verify_url
 
 # V3 Integration
 try:
-    from v3_integration import extend_scout_with_v3, check_v3_dependencies
+    from integration import extend_scout_with_v3, check_v3_dependencies
     V3_AVAILABLE = True
 except ImportError:
     V3_AVAILABLE = False

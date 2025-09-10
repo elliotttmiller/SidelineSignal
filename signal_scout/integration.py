@@ -47,7 +47,7 @@ class V3CognitiveEngine:
         
         try:
             # Change to spider directory
-            spider_dir = os.path.join(os.path.dirname(__file__), 'v3_spider')
+            spider_dir = os.path.join(os.path.dirname(__file__), 'spider')
             original_dir = os.getcwd()
             
             # Create a Python script to run the spider with proper imports
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         pass  # Scrapy calls sys.exit(), ignore it
 '''
         
-        script_path = os.path.join(os.path.dirname(__file__), 'v3_spider', 'run_spider.py')
+        script_path = os.path.join(os.path.dirname(__file__), 'spider', 'run_spider.py')
         with open(script_path, 'w') as f:
             f.write(script_content)
         
