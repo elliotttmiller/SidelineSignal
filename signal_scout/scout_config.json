@@ -1,34 +1,5 @@
 {
   "operational_parameters": {
-    "aggregator_urls": [
-      "https://github.com/fmhy/FMHYedit/wiki/📺-Movies---TV"
-    ],
-    "permutation_bases": [
-      "streameast",
-      "sportssurge", 
-      "freestreams",
-      "watchseries",
-      "moviehd",
-      "live2sports",
-      "crackstreams",
-      "buffstreams",
-      "topstreams",
-      "vipbox"
-    ],
-    "permutation_tlds": [
-      ".app",
-      ".io", 
-      ".live",
-      ".gg",
-      ".net",
-      ".org", 
-      ".tv",
-      ".me",
-      ".co",
-      ".cc",
-      ".site",
-      ".online"
-    ],
     "seed_queries": [
       "watch NFL live free",
       "soccer stream reddit",

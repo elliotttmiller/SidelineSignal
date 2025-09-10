@@ -197,7 +197,7 @@ python control.py
 │ │Full System Test │ │ Total Active Sites: 156                                 │
 │ └─────────────────┘ │                                                         │
 ├─────────────────────┴──────────────────────────────────────────────────────────┤
-│ Ctrl+C: Quit | F1: Toggle Log | F2: Show Report | F3: Refresh                 │
+│ Ctrl+C: Quit | F1: Toggle Log | F2: Show Report | F3: Refresh | F4: Cognitive   │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
 

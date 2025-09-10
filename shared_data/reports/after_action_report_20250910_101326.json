@@ -1,0 +1,58 @@
+{
+  "report_type": "after_action",
+  "timestamp": "2025-09-10T10:13:26.894780",
+  "mission_summary": {
+    "duration_minutes": 5,
+    "pages_crawled": 2,
+    "links_evaluated": 0
+  },
+  "discovery_results": {
+    "new_sites_found": 0,
+    "sites_quarantined": 2,
+    "total_active_sites": 34,
+    "database_status": "analysis_complete"
+  },
+  "performance_analysis": {
+    "ai_classification_rate": 0.5,
+    "verification_success_rate": 1.0,
+    "most_effective_hunt_method": "community_aggregator",
+    "avg_sites_per_query": 0.2
+  },
+  "failed_operations": [],
+  "successful_patterns": [],
+  "recommendations": [
+    "No new sites discovered - pivot to different search strategies",
+    "Community aggregation working well - target more curated sources"
+  ],
+  "raw_metrics": {
+    "log_analysis": {
+      "pages_crawled": 2,
+      "links_evaluated": 0,
+      "ai_classifications": 2,
+      "ai_positive": 1,
+      "ai_negative": 1,
+      "v2_verifications": 1,
+      "v2_successes": 1,
+      "ai_success_rate": 0.5,
+      "verification_success_rate": 1.0,
+      "duration_minutes": 5
+    },
+    "db_analysis": {
+      "total_sites_count": 36,
+      "active_sites_count": 34,
+      "new_sites_count": 0,
+      "quarantined_count": 2,
+      "source_breakdown": {
+        "scout_discovery": 33,
+        "seed": 3
+      },
+      "status": "analysis_complete"
+    },
+    "operational_analysis": {
+      "failed_operations": [],
+      "successful_patterns": [],
+      "most_effective_method": "community_aggregator",
+      "avg_sites_per_query": 0.2
+    }
+  }
+}

@@ -236,6 +236,116 @@ class AfterActionReportWidget(Static):
         content_widget.update(self.generate_report())
 
 
+class CognitiveResultsWidget(Static):
+    """Widget for displaying V5.0 cognitive cycle results with all three stages"""
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.results_data = None
+    
+    def compose(self) -> ComposeResult:
+        yield Static(self.generate_cognitive_display(), id="cognitive-results-content")
+    
+    def update_results(self, results_data):
+        """Update the widget with new cognitive cycle results."""
+        self.results_data = results_data
+        content_widget = self.query_one("#cognitive-results-content", Static)
+        content_widget.update(self.generate_cognitive_display())
+    
+    def generate_cognitive_display(self) -> str:
+        """Generate the three-stage cognitive dashboard display."""
+        if not self.results_data:
+            return "No cognitive cycle results available. Run the V5.0 cognitive organism first."
+        
+        display_lines = [
+            "V5.0 COGNITIVE ORGANISM RESULTS",
+            "=" * 50,
+            ""
+        ]
+        
+        # STAGE 1: PLANNING
+        display_lines.append("🧠 STAGE 1: COGNITIVE PLANNING")
+        display_lines.append("-" * 35)
+        
+        planning = self.results_data.get("planning", {})
+        if planning.get("success"):
+            mission_plan = planning.get("mission_plan", {})
+            display_lines.extend([
+                f"Mission Type: {mission_plan.get('mission_type', 'Unknown')}",
+                f"Strategy: {mission_plan.get('strategy', 'No strategy')[:80]}...",
+                f"AI-Generated Queries: {len(mission_plan.get('seed_queries', []))} queries",
+                f"Adaptive Mode: {'Yes' if planning.get('adaptive') else 'No (Genesis)'}",
+                "Status: ✅ SUCCESS"
+            ])
+        else:
+            display_lines.extend([
+                f"Error: {planning.get('error', 'Unknown planning error')}",
+                "Status: ❌ FAILED"
+            ])
+        
+        display_lines.append("")
+        
+        # STAGE 2: EXECUTION
+        display_lines.append("⚡ STAGE 2: MISSION EXECUTION") 
+        display_lines.append("-" * 35)
+        
+        execution = self.results_data.get("execution", {})
+        if execution.get("success"):
+            display_lines.extend([
+                "Mission executed with AI-generated strategy",
+                "Scout crawler completed discovery mission",
+                "Status: ✅ SUCCESS"
+            ])
+        else:
+            display_lines.extend([
+                f"Error: {execution.get('error', 'Unknown execution error')}",
+                "Status: ❌ FAILED"
+            ])
+        
+        display_lines.append("")
+        
+        # STAGE 3: REPORTING
+        display_lines.append("📊 STAGE 3: COGNITIVE ANALYSIS")
+        display_lines.append("-" * 35)
+        
+        reporting = self.results_data.get("reporting", {})
+        if reporting.get("success"):
+            report = reporting.get("report", {})
+            discovery = report.get("discovery_results", {})
+            performance = report.get("performance_analysis", {})
+            
+            display_lines.extend([
+                f"New Sites Found: {discovery.get('new_sites_found', 0)}",
+                f"Sites Quarantined: {discovery.get('sites_quarantined', 0)}",
+                f"Total Active Sites: {discovery.get('total_active_sites', 0)}",
+                f"Most Effective Method: {performance.get('most_effective_hunt_method', 'Unknown')}",
+                "Status: ✅ SUCCESS"
+            ])
+            
+            # Show AI recommendations
+            recommendations = report.get("recommendations", [])
+            if recommendations:
+                display_lines.append("")
+                display_lines.append("AI RECOMMENDATIONS:")
+                for i, rec in enumerate(recommendations[:3], 1):
+                    display_lines.append(f"{i}. {rec[:60]}...")
+                    
+        else:
+            display_lines.extend([
+                f"Error: {reporting.get('error', 'Unknown reporting error')}",
+                "Status: ❌ FAILED"
+            ])
+        
+        display_lines.extend([
+            "",
+            "=" * 50,
+            f"Overall Cycle Status: {'✅ SUCCESS' if self.results_data.get('success') else '❌ PARTIAL/FAILED'}",
+            "Next cycle will use this report for adaptive planning."
+        ])
+        
+        return "\n".join(display_lines)
+
+
 class ControlPanel(Container):
     """Main control panel with operation buttons"""
     
@@ -279,22 +389,23 @@ class ControlPanel(Container):
     
     @on(Button.Pressed, "#btn-scout")
     def start_scout_run(self, event: Button.Pressed) -> None:
-        """Handle scout run execution"""
-        self.update_status("Starting scout run...", "yellow")
+        """Handle V5.0 cognitive organism execution"""
+        self.update_status("Starting V5.0 cognitive organism...", "yellow")
         
-        def run_scout():
+        def run_cognitive_organism():
             try:
-                success = self.engine.run_scout()
-                if success:
-                    self.call_from_thread(self.update_status, "✅ Scout run completed", "green")
-                    # Notify app to switch to after-action report
-                    self.app.call_from_thread(self.app.show_after_action_report)
+                # Execute the V5.0 cognitive cycle
+                results = self.engine.run_cognitive_cycle()
+                if results.get("success", False):
+                    self.call_from_thread(self.update_status, "✅ V5.0 cognitive cycle completed", "green")
+                    # Notify app to switch to cognitive results display
+                    self.app.call_from_thread(self.app.show_cognitive_results, results)
                 else:
-                    self.call_from_thread(self.update_status, "❌ Scout run failed", "red")
+                    self.call_from_thread(self.update_status, "❌ V5.0 cognitive cycle failed", "red")
             except Exception as e:
-                self.call_from_thread(self.update_status, f"❌ Scout error: {str(e)[:50]}...", "red")
+                self.call_from_thread(self.update_status, f"❌ Cognitive error: {str(e)[:50]}...", "red")
         
-        threading.Thread(target=run_scout, daemon=True).start()
+        threading.Thread(target=run_cognitive_organism, daemon=True).start()
     
     @on(Button.Pressed, "#btn-app")
     def start_web_app(self, event: Button.Pressed) -> None:
@@ -356,7 +467,7 @@ class ControlPanel(Container):
 
 
 class SidelineControlCenter(App):
-    """Main TUI application for SidelineSignal Command Center"""
+    """Main TUI application for SidelineSignal V5.0 Cognitive Command Center"""
     
     CSS = """
     Screen {
@@ -427,11 +538,13 @@ class SidelineControlCenter(App):
         Binding("f1", "toggle_log", "Toggle Log"),
         Binding("f2", "show_report", "Show Report"),
         Binding("f3", "refresh", "Refresh"),
+        Binding("f4", "show_cognitive", "Cognitive Results"),
     ]
     
     def __init__(self):
         super().__init__()
-        self.current_content = "preflight"  # preflight, log, report
+        self.current_content = "preflight"  # preflight, log, report, cognitive
+        self.cognitive_results = None
         
     def compose(self) -> ComposeResult:
         """Compose the main application layout"""
@@ -442,8 +555,8 @@ class SidelineControlCenter(App):
     
     def on_mount(self) -> None:
         """Initialize the application"""
-        self.title = "SidelineSignal Command Center"
-        self.sub_title = "V3 Cognitive Engine Control Panel"
+        self.title = "SidelineSignal V5.0 Command Center"
+        self.sub_title = "Cognitive Organism Control Panel"
     
     def action_toggle_log(self) -> None:
         """Toggle to log viewer"""
@@ -456,6 +569,10 @@ class SidelineControlCenter(App):
         """Show after-action report"""
         self.show_after_action_report()
     
+    def action_show_cognitive(self) -> None:
+        """Show cognitive results"""
+        self.show_cognitive_results()
+    
     def action_refresh(self) -> None:
         """Refresh current content"""
         if self.current_content == "preflight":
@@ -464,6 +581,8 @@ class SidelineControlCenter(App):
             self.refresh_log()
         elif self.current_content == "report":
             self.refresh_report()
+        elif self.current_content == "cognitive":
+            self.refresh_cognitive()
     
     def show_preflight(self) -> None:
         """Show pre-flight check content"""
@@ -486,6 +605,21 @@ class SidelineControlCenter(App):
         content_container.mount(AfterActionReportWidget())
         self.current_content = "report"
     
+    def show_cognitive_results(self, results_data=None) -> None:
+        """Show V5.0 cognitive results content"""
+        if results_data:
+            self.cognitive_results = results_data
+        
+        content_container = self.query_one("#content")
+        content_container.remove_children()
+        
+        widget = CognitiveResultsWidget()
+        if self.cognitive_results:
+            widget.results_data = self.cognitive_results
+        
+        content_container.mount(widget)
+        self.current_content = "cognitive"
+    
     def refresh_preflight(self) -> None:
         """Refresh pre-flight check"""
         try:
@@ -507,6 +641,15 @@ class SidelineControlCenter(App):
         try:
             report_widget = self.query_one(AfterActionReportWidget)
             report_widget.refresh_report()
+        except:
+            pass
+    
+    def refresh_cognitive(self) -> None:
+        """Refresh cognitive results"""
+        try:
+            cognitive_widget = self.query_one(CognitiveResultsWidget)
+            if self.cognitive_results:
+                cognitive_widget.update_results(self.cognitive_results)
         except:
             pass
 
