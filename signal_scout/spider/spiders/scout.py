@@ -1,12 +1,14 @@
 """
-Signal Scout V3 - Professional Autonomous Streaming Site Crawler
+Signal Scout V4 - Professional Autonomous Streaming Site Crawler with Hybrid Intelligence
 
-This is the main production spider for SidelineSignal V3 that implements:
+This is the main production spider for SidelineSignal V4 that implements:
 - Professional-grade logging at all decision points
-- AI-powered content classification 
+- AI-powered content classification (V3 Layer)
+- LLM cognitive verification (V4 Layer) 
 - V2 verification pipeline integration
 - Autonomous feedback loop crawling
 - Focused link analysis with relevancy scoring
+- Hybrid Intelligence with V3→V4→V2 triage funnel
 
 Spider name: 'scout' - run with: scrapy crawl scout
 """
@@ -28,6 +30,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from classifier import StreamingSiteClassifier
 from verification import verify_url
+from llm_analyst import LLMAnalyst
 
 # Configure professional logging
 logger = logging.getLogger(__name__)
@@ -35,10 +38,11 @@ logger = logging.getLogger(__name__)
 
 class ScoutSpider(scrapy.Spider):
     """
-    SidelineSignal V3 Professional Scout Spider
+    SidelineSignal V4 Professional Scout Spider with Hybrid Intelligence
     
     Autonomous cognitive crawler with comprehensive logging for live fire testing.
     Implements all Protocol requirements for transparent operation.
+    Features V4 Hybrid Intelligence: V3 AI → V4 LLM → V2 Verification pipeline.
     """
     
     name = "scout"
@@ -49,7 +53,7 @@ class ScoutSpider(scrapy.Spider):
         super().__init__(*args, **kwargs)
         
         logger.info("="*60)
-        logger.info("SIGNAL SCOUT V3 - INITIALIZING PROFESSIONAL CRAWLER")
+        logger.info("SIGNAL SCOUT V4 - INITIALIZING HYBRID INTELLIGENCE CRAWLER")
         logger.info("="*60)
         
         # Load configuration
@@ -63,6 +67,17 @@ class ScoutSpider(scrapy.Spider):
         except Exception as e:
             logger.error(f"Failed to initialize AI Classifier: {e}")
             self.classifier = None
+        
+        # Initialize LLM Analyst for V4 cognitive verification
+        try:
+            self.llm_analyst = LLMAnalyst()
+            if self.llm_analyst.is_available():
+                logger.info("V4 LLM Analyst initialized and ready")
+            else:
+                logger.warning("V4 LLM Analyst initialized but LM Studio not available")
+        except Exception as e:
+            logger.error(f"Failed to initialize V4 LLM Analyst: {e}")
+            self.llm_analyst = None
         
         # Initialize Scout instance for V2 verification pipeline
         self.scout_instance = None
@@ -82,7 +97,10 @@ class ScoutSpider(scrapy.Spider):
             'v2_verifications_attempted': 0,
             'v2_verifications_passed': 0,
             'urls_written_to_database': 0,
-            'autonomous_seeds_added': 0
+            'autonomous_seeds_added': 0,
+            'llm_analyses_attempted': 0,
+            'llm_analyses_successful': 0,
+            'llm_verified_streaming_sites': 0
         }
         
         # Track processed URLs to avoid duplicates
@@ -234,7 +252,7 @@ class ScoutSpider(scrapy.Spider):
                 
                 if ai_probability >= ai_threshold:
                     logger.info(f"URL passing to final V2 verification pipeline: {url} (AI confidence: {ai_probability:.3f})")
-                    self._verify_with_v2_pipeline(url, classification_result)
+                    self._verify_with_v2_pipeline(url, classification_result, response.text)
                 else:
                     logger.debug(f"URL filtered out by AI classifier: {url} (confidence: {ai_probability:.3f})")
                     
@@ -254,9 +272,10 @@ class ScoutSpider(scrapy.Spider):
         if self.stats['pages_crawled'] % 10 == 0:
             self._log_operational_statistics()
     
-    def _verify_with_v2_pipeline(self, url, classification_result):
+    def _verify_with_v2_pipeline(self, url, classification_result, page_content=""):
         """
-        Send high-confidence AI classifications through V2 verification pipeline.
+        Send high-confidence AI classifications through V2 verification pipeline
+        and V4 LLM cognitive analysis.
         """
         try:
             self.stats['v2_verifications_attempted'] += 1
@@ -279,8 +298,11 @@ class ScoutSpider(scrapy.Spider):
                 logger.info(f"URL passing final V2 verification pipeline: {url} (V2 confidence: {v2_confidence})")
                 self.stats['v2_verifications_passed'] += 1
                 
-                # Store in database
-                self._write_url_to_database(url, verification_result)
+                # V4 LLM Cognitive Analysis Stage
+                llm_analysis_result = self._perform_llm_analysis(url, page_content)
+                
+                # Store in database with LLM enrichment
+                self._write_url_to_database(url, verification_result, llm_analysis_result)
                 
                 # Autonomous feedback loop
                 if self.config.get('v3_crawler_settings', {}).get('enable_autonomous_feedback', True):
@@ -292,46 +314,119 @@ class ScoutSpider(scrapy.Spider):
         except Exception as e:
             logger.error(f"V2 verification pipeline failed for {url}: {e}")
     
-    def _write_url_to_database(self, url, verification_result):
+    def _perform_llm_analysis(self, url, page_content):
         """
-        Write successfully verified URL to the shared database.
+        Perform V4 LLM cognitive analysis on the page content.
+        
+        This is the final verification stage of the V4 Hybrid Intelligence pipeline.
+        """
+        if not self.llm_analyst:
+            logger.warning(f"LLM Analyst not available for cognitive analysis: {url}")
+            return {
+                "service_name": "Unknown",
+                "primary_category": "Unknown", 
+                "confidence_reasoning": "LLM Analyst not available",
+                "is_streaming_portal": False,
+                "error": "LLM Analyst not initialized"
+            }
+        
+        try:
+            self.stats['llm_analyses_attempted'] += 1
+            
+            logger.info(f"V4 LLM COGNITIVE ANALYSIS STARTING for: {url}")
+            
+            # Get cognitive analysis from LLM
+            llm_result = self.llm_analyst.get_cognitive_analysis(page_content, url)
+            
+            if 'error' not in llm_result:
+                self.stats['llm_analyses_successful'] += 1
+                
+                if llm_result.get('is_streaming_portal', False):
+                    self.stats['llm_verified_streaming_sites'] += 1
+                    logger.info(f"V4 LLM VERIFICATION SUCCESS: {url} verified as streaming portal - "
+                               f"Service: {llm_result.get('service_name')} "
+                               f"Category: {llm_result.get('primary_category')}")
+                else:
+                    logger.info(f"V4 LLM ANALYSIS: {url} classified as non-streaming - "
+                               f"Category: {llm_result.get('primary_category')}")
+            else:
+                logger.warning(f"V4 LLM analysis had errors for {url}: {llm_result.get('error')}")
+            
+            return llm_result
+            
+        except Exception as e:
+            logger.error(f"V4 LLM cognitive analysis failed for {url}: {e}")
+            return {
+                "service_name": "Unknown",
+                "primary_category": "Error",
+                "confidence_reasoning": f"LLM analysis failed: {str(e)}",
+                "is_streaming_portal": False,
+                "error": str(e)
+            }
+    
+    def _write_url_to_database(self, url, verification_result, llm_analysis_result=None):
+        """
+        Write successfully verified URL to the shared database with V4 LLM enrichment.
         """
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Extract site name
-            site_name = self._extract_site_name(url)
+            # Extract site name from LLM or fallback to URL parsing
+            if llm_analysis_result and llm_analysis_result.get('service_name') != 'Unknown':
+                site_name = llm_analysis_result['service_name']
+            else:
+                site_name = self._extract_site_name(url)
+            
             confidence_score = verification_result.get('overall_confidence', 0)
             timestamp = datetime.now()
+            
+            # Extract LLM data
+            llm_verified = None
+            category = None
+            llm_reasoning = None
+            
+            if llm_analysis_result and 'error' not in llm_analysis_result:
+                llm_verified = llm_analysis_result.get('is_streaming_portal', False)
+                category = llm_analysis_result.get('primary_category', 'Unknown')
+                llm_reasoning = llm_analysis_result.get('confidence_reasoning', '')
             
             # Check if URL already exists
             cursor.execute("SELECT id FROM sites WHERE url = ?", (url,))
             existing = cursor.fetchone()
             
             if existing:
-                # Update existing entry
+                # Update existing entry with V4 LLM data
                 cursor.execute("""
                     UPDATE sites 
-                    SET last_verified = ?, confidence_score = ?, is_active = 1, status = 'active'
+                    SET last_verified = ?, confidence_score = ?, is_active = 1, status = 'active',
+                        name = ?, llm_verified = ?, category = ?, llm_reasoning = ?
                     WHERE url = ?
-                """, (timestamp, confidence_score, url))
-                logger.info(f"URL successfully updated in database: {url}")
+                """, (timestamp, confidence_score, site_name, llm_verified, category, llm_reasoning, url))
+                logger.info(f"V4 URL successfully updated in database with LLM enrichment: {url}")
             else:
-                # Insert new entry
+                # Insert new entry with V4 LLM data
                 cursor.execute("""
-                    INSERT INTO sites (name, url, source, last_verified, confidence_score, is_active, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (site_name, url, 'v3_scout_discovery', timestamp, confidence_score, 1, 'active'))
-                logger.info(f"URL successfully written to database: {url}")
+                    INSERT INTO sites (name, url, source, last_verified, confidence_score, is_active, status, 
+                                     llm_verified, category, llm_reasoning)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (site_name, url, 'v4_hybrid_discovery', timestamp, confidence_score, 1, 'active',
+                      llm_verified, category, llm_reasoning))
+                logger.info(f"V4 URL successfully written to database with LLM enrichment: {url}")
             
             conn.commit()
             conn.close()
             
             self.stats['urls_written_to_database'] += 1
             
+            # Log the V4 enrichment details
+            if llm_analysis_result and 'error' not in llm_analysis_result:
+                logger.info(f"V4 HYBRID INTELLIGENCE COMPLETE: {url} -> "
+                           f"Name: {site_name}, Category: {category}, "
+                           f"LLM Verified: {llm_verified}")
+            
         except Exception as e:
-            logger.error(f"Failed to write URL to database {url}: {e}")
+            logger.error(f"Failed to write V4 URL to database {url}: {e}")
     
     def _extract_site_name(self, url):
         """Extract a clean site name from URL."""
@@ -474,6 +569,8 @@ class ScoutSpider(scrapy.Spider):
         logger.info(f"Links Evaluated: {self.stats['links_evaluated']}")
         logger.info(f"AI Classifications: +{self.stats['ai_classifications_positive']} -{self.stats['ai_classifications_negative']}")
         logger.info(f"V2 Verifications: {self.stats['v2_verifications_attempted']} attempted, {self.stats['v2_verifications_passed']} passed")
+        logger.info(f"V4 LLM Analyses: {self.stats['llm_analyses_attempted']} attempted, {self.stats['llm_analyses_successful']} successful")
+        logger.info(f"LLM Verified Streaming Sites: {self.stats['llm_verified_streaming_sites']}")
         logger.info(f"URLs Written to Database: {self.stats['urls_written_to_database']}")
         logger.info(f"Autonomous Seeds Added: {self.stats['autonomous_seeds_added']}")
         logger.info("="*50)
@@ -500,6 +597,9 @@ class ScoutSpider(scrapy.Spider):
         logger.info(f"  AI Classifications Negative: {self.stats['ai_classifications_negative']}")
         logger.info(f"  V2 Verifications Attempted: {self.stats['v2_verifications_attempted']}")
         logger.info(f"  V2 Verifications Passed: {self.stats['v2_verifications_passed']}")
+        logger.info(f"  V4 LLM Analyses Attempted: {self.stats['llm_analyses_attempted']}")
+        logger.info(f"  V4 LLM Analyses Successful: {self.stats['llm_analyses_successful']}")
+        logger.info(f"  LLM Verified Streaming Sites: {self.stats['llm_verified_streaming_sites']}")
         logger.info(f"  URLs Written to Database: {self.stats['urls_written_to_database']}")
         logger.info(f"  Autonomous Seeds Added: {self.stats['autonomous_seeds_added']}")
         logger.info("")
