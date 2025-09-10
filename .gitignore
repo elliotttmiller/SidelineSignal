@@ -35,6 +35,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Hugging Face API keys and sensitive configuration
+.env
+.env.local
+.env.production
+.env.staging
+
 # IDE
 .vscode/
 .idea/

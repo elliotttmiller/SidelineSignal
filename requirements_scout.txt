@@ -8,3 +8,5 @@ numpy==2.3.3
 rich==13.7.1
 textual==0.75.1
 openai==1.107.0
+huggingface-hub==0.20.3
+python-dotenv==1.0.1

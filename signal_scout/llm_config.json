@@ -1,8 +1,8 @@
 {
   "llm_settings": {
-    "api_url": "http://localhost:1234/v1",
-    "model_name": "local-model",
-    "api_key": "lm-studio",
+    "api_url": "https://api-inference.huggingface.co",
+    "model_name": "meta-llama/Llama-3.1-8B-Instruct",
+    "api_key_env": "HUGGINGFACE_API_KEY",
     "max_tokens": 500,
     "temperature": 0.1,
     "timeout": 30
