@@ -1,64 +1,56 @@
-# SidelineSignal V4 - Hybrid Intelligence Streaming Discovery System
+# SidelineSignal V5 - Hugging Face Cognitive Streaming Discovery System
 
-**Professional V4 Operational Manual - AI + LLM Cognitive Architecture**
+**Professional V5 Operational Manual - AI + LLM Cognitive Architecture with Hugging Face**
 
-SidelineSignal V4 represents the pinnacle evolution of autonomous streaming site discovery, featuring a revolutionary **Hybrid Intelligence** engine that combines traditional AI classification with state-of-the-art Large Language Model cognitive verification. This system implements a sophisticated V3→V4→V2 triage funnel for unparalleled accuracy in streaming site identification and verification.
+SidelineSignal V5 represents the pinnacle evolution of autonomous streaming site discovery, featuring a revolutionary **Hugging Face Cognitive Engine** that combines traditional AI classification with state-of-the-art Large Language Model cognitive verification. This system implements a sophisticated V3→V4→V2 triage funnel for unparalleled accuracy in streaming site identification and verification.
 
-## V4.0 - Hybrid Intelligence Setup
+## V5.0 - Hugging Face Cognitive Engine Setup
 
-**🧠 LM Studio Integration for Cognitive Verification**
+**🧠 Professional Hugging Face Integration for Production Deployment**
 
-SidelineSignal V4 integrates with LM Studio to provide advanced cognitive analysis as the final verification stage. The LLM serves as an expert analyst, performing deep contextual verification and autonomous data enrichment.
+SidelineSignal V5 integrates with Hugging Face Inference API to provide advanced cognitive analysis as the final verification stage. The LLM serves as an expert analyst, performing deep contextual verification and autonomous data enrichment using the powerful **meta-llama/Llama-3.1-8B-Instruct** model.
 
-### LM Studio Installation and Configuration
+### Hugging Face API Configuration
 
-1. **Install LM Studio**:
+1. **Obtain Hugging Face API Key**:
    ```bash
-   # Download from: https://lmstudio.ai/
-   # Install and launch LM Studio
+   # Visit: https://huggingface.co/settings/tokens
+   # Create a new token with "Inference API" access
+   # Copy your API key for the next step
    ```
 
-2. **Download a Recommended Model**:
-   - **Recommended**: Llama 2 7B Chat or similar 7B parameter model
-   - **Alternative**: Any chat-optimized model with good reasoning capabilities
-   - Ensure the model supports structured JSON output
-
-3. **Start LM Studio Server**:
+2. **Configure Environment Variables**:
    ```bash
-   # In LM Studio:
-   # 1. Load your chosen model
-   # 2. Go to "Local Server" tab
-   # 3. Start server (default: http://localhost:1234)
-   # 4. Verify server is running at http://localhost:1234/v1
+   # Copy the environment template
+   cp .env.example .env
+   
+   # Edit .env and add your API key:
+   # HUGGINGFACE_API_KEY=your_actual_hugging_face_api_key_here
    ```
 
-4. **Configure SidelineSignal V4**:
+3. **Verify Configuration**:
    ```bash
-   # Edit signal_scout/llm_config.json to match your setup:
-   {
-     "llm_settings": {
-       "api_url": "http://localhost:1234/v1",
-       "model_name": "your-model-name",
-       "api_key": "lm-studio",
-       "max_tokens": 500,
-       "temperature": 0.1
-     },
-     "v4_integration": {
-       "v3_confidence_threshold": 0.7,
-       "enable_llm_verification": true
-     }
-   }
+   # The system will automatically load your API key
+   # No additional configuration needed - V5 is ready!
    ```
 
-### V4 Hybrid Intelligence Architecture
+4. **Production Deployment Notes**:
+   ```bash
+   # For production environments:
+   # - Set HUGGINGFACE_API_KEY in your deployment environment
+   # - Use environment-specific .env files (.env.production, .env.staging)
+   # - Never commit .env files to version control (already in .gitignore)
+   ```
+
+### V5 Hugging Face Cognitive Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    SidelineSignal V4 Hybrid Intelligence            │
+│                  SidelineSignal V5 Hugging Face Engine              │
 ├─────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐   │
-│  │  Genesis Seed   │    │   V3 AI Judge   │    │  V4 LLM Analyst │   │
-│  │     Engine      │───▶│  (Classical ML) │───▶│ (Cognitive LLM) │   │
+│  │  Genesis Seed   │    │   V3 AI Judge   │    │ V5 HF Analyst   │   │
+│  │     Engine      │───▶│  (Classical ML) │───▶│(Llama-3.1-8B)  │   │
 │  │                 │    │                 │    │                 │   │
 │  │ • Query Engine  │    │ • Feature Ext.  │    │ • Deep Analysis │   │
 │  │ • URL Discovery │    │ • TF-IDF        │    │ • JSON Parsing  │   │
@@ -67,20 +59,20 @@ SidelineSignal V4 integrates with LM Studio to provide advanced cognitive analys
 │           │                        │                        │        │
 │           ▼                        ▼                        ▼        │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │             V4 Triage Funnel: V3 → V4 → V2 Pipeline            │ │
+│  │           V5 Triage Funnel: V3 → HuggingFace → V2 Pipeline     │ │
 │  │                                                                 │ │
-│  │ • Probabilistic → Cognitive → Deterministic Verification       │ │
+│  │ • Probabilistic → Cloud Cognitive → Deterministic Verification │ │
 │  │ • Multi-stage Confidence Scoring with LLM Reasoning           │ │
-│  │ • Autonomous Data Enrichment and Categorization               │ │
+│  │ • Professional Cloud-Based Cognitive Analysis                 │ │
 │  └─────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│              V4 Enhanced Database with LLM Enrichment               │
+│             V5 Enhanced Database with Hugging Face Enrichment       │
 │                                                                     │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐ │
-│  │   Site Registry │    │  LLM Metadata   │    │ Category System │ │
+│  │   Site Registry │    │ HuggingFace Meta│    │ Category System │ │
 │  │                 │    │                 │    │                 │ │
 │  │ • Verified URLs │    │ • LLM Verified  │    │ • Auto Categories│ │
 │  │ • V3 Confidence │    │ • Reasoning     │    │ • Service Names │ │
@@ -89,54 +81,54 @@ SidelineSignal V4 integrates with LM Studio to provide advanced cognitive analys
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### V4 Operational Workflow
+### V5 Operational Workflow
 
-The V4 system operates through a sophisticated **Hybrid Intelligence Triage Funnel**:
+The V5 system operates through a sophisticated **Hugging Face Cognitive Triage Funnel**:
 
 1. **V3 Classical AI Analysis**: Traditional ML feature extraction and classification
-2. **V4 LLM Cognitive Verification**: Advanced reasoning and contextual analysis
+2. **V5 Hugging Face Cognitive Verification**: Advanced reasoning with Llama-3.1-8B-Instruct
 3. **V2 Technical Verification**: Final headless browser verification
-4. **Database Enrichment**: Store enhanced metadata with LLM insights
+4. **Database Enrichment**: Store enhanced metadata with Hugging Face insights
 
-**V4 Discovery Command**:
+**V5 Discovery Command**:
 ```bash
-# Activate scout environment with V4 capabilities
+# Activate scout environment with V5 capabilities
 source scout_venv/bin/activate
 cd signal_scout/
 
-# Run V4 Hybrid Intelligence Discovery
+# Run V5 Hugging Face Cognitive Discovery
 scrapy crawl scout
 
-# Monitor V4 cognitive analysis in real-time
-tail -f scout.log | grep "V4 LLM"
+# Monitor V5 cognitive analysis in real-time
+tail -f scout.log | grep "Hugging Face"
 ```
 
-### V4 Features and Capabilities
+### V5 Features and Capabilities
 
-**🧠 Cognitive LLM Analysis**:
-- Expert-level content understanding and reasoning
+**🧠 Hugging Face Cognitive Analysis**:
+- Professional cloud-based LLM analysis with meta-llama/Llama-3.1-8B-Instruct
 - Structured JSON output with confidence explanations
 - Autonomous service name extraction and categorization
 - Context-aware streaming site identification
 
-**⚡ Hybrid Intelligence Pipeline**:
-- V3 AI → V4 LLM → V2 Verification triage funnel
+**⚡ Cloud-Powered Intelligence Pipeline**:
+- V3 AI → Hugging Face LLM → V2 Verification triage funnel
 - Multi-layered confidence scoring and validation
-- Autonomous data enrichment and metadata generation
-- Enhanced accuracy through cognitive verification
+- Professional API integration with robust error handling
+- Enhanced accuracy through cloud cognitive verification
 
 **📊 Enhanced Monitoring Interface**:
 - Real-time category badges for discovered sites
-- LLM verification indicators with brain emoji (🧠)
+- Hugging Face verification indicators with brain emoji (🧠)
 - Professional category color coding and visual hierarchy
-- V4 Hybrid Intelligence branding and enhanced UI
+- V5 Hugging Face Cognitive Engine branding and enhanced UI
 
 
 ## The SidelineSignal Command Center
 
 **The Ultimate User Experience - Professional Terminal Control Panel**
 
-SidelineSignal V3 now features the **Command Center**, a revolutionary user interface that transforms complex system operations into an intuitive, pixel-perfect experience. The Command Center provides two powerful interfaces for operating your cognitive streaming discovery system:
+SidelineSignal V5 now features the **Command Center**, a revolutionary user interface that transforms complex system operations into an intuitive, pixel-perfect experience. The Command Center provides two powerful interfaces for operating your Hugging Face cognitive streaming discovery system:
 
 ### 🎯 Quick Start - Professional Automation
 
@@ -172,7 +164,7 @@ python control.py
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
-│  🎯 SidelineSignal Command Center — V3 Cognitive Engine Control Panel          │
+│  🎯 SidelineSignal Command Center — V5 Hugging Face Engine Control Panel       │
 ├─────────────────────┬──────────────────────────────────────────────────────────┤
 │                     │ PRE-FLIGHT SYSTEM CHECK                                 │
 │ System Controls     │ ==============================                           │
@@ -180,16 +172,16 @@ python control.py
 │ ┌─────────────────┐ │ Database Initialized: ✅ YES                            │
 │ │ Train AI Model  │ │ Scout venv: ✅ OK                                       │
 │ └─────────────────┘ │ App venv: ✅ OK                                         │
-│                     │                                                         │
-│ ┌─────────────────┐ │ Model Path: signal_scout/scout_model.pkl                │
-│ │Start Scout Run  │ │ Database Path: shared_data/sites.db                     │
-│ └─────────────────┘ │                                                         │
+│                     │ Hugging Face API: ✅ READY                              │
+│ ┌─────────────────┐ │                                                         │
+│ │Start Scout Run  │ │ Model: meta-llama/Llama-3.1-8B-Instruct                │
+│ └─────────────────┘ │ Database Path: shared_data/sites.db                     │
 │                     │                                                         │
 │ ┌─────────────────┐ │ *** LIVE LOG VIEWER ***                                 │
 │ │ Start Web App   │ │ [Filter: keyword search]                                │
-│ └─────────────────┘ │ [2025-01-09 09:05:02] Scout run starting...            │
+│ └─────────────────┘ │ [2025-01-09 09:05:02] V5 Scout run starting...         │
 │                     │ [2025-01-09 09:05:03] AI classifier loaded              │
-│ ┌─────────────────┐ │ [2025-01-09 09:05:05] New site discovered               │
+│ ┌─────────────────┐ │ [2025-01-09 09:05:05] Hugging Face analysis complete   │
 │ │ Stop Web App    │ │                                                         │
 │ └─────────────────┘ │ *** AFTER ACTION REPORT ***                             │
 │                     │ New Sites Found: 12                                     │
@@ -215,10 +207,10 @@ python control.py
 | Control | Function | Description |
 |---------|----------|-------------|
 | **Train AI Model** | Trains/retrains the classification model | Updates AI with latest positive/negative samples |
-| **Start Scout Run** | Launches V3 cognitive crawler | Executes full Scrapy-based discovery operation |
+| **Start Scout Run** | Launches V5 Hugging Face cognitive crawler | Executes full Scrapy-based discovery with cloud LLM |
 | **Start Web App** | Starts monitoring interface | Launches Flask app at http://localhost:5000 |
 | **Stop Web App** | Terminates web application | Safely shuts down the monitoring interface |
-| **Full System Test** | Comprehensive validation | Runs limited test to verify all components |
+| **Full System Test** | Comprehensive validation | Runs complete V5 cognitive pipeline test |
 
 #### Keyboard Shortcuts
 
@@ -230,9 +222,9 @@ python control.py
 ### 🎮 Command Center Operational Workflows
 
 **Daily Discovery Operation:**
-1. Launch Command Center: `python control.py`
-2. Verify pre-flight check shows all green status
-3. Click "Start Scout Run" for autonomous discovery
+1. Launch Command Center: `python main.py`
+2. Verify pre-flight check shows Hugging Face API ready
+3. Click "Start Scout Run" for autonomous V5 discovery
 4. Monitor real-time logs in the Live Log Viewer (F1)
 5. Review After Action Report when complete (F2)
 6. Launch monitoring: Click "Start Web App" for real-time site monitoring
@@ -251,23 +243,24 @@ python control.py
 
 ## Project Overview
 
-SidelineSignal V3 implements a cutting-edge cognitive architecture that elevates streaming site discovery to autonomous intelligence:
+SidelineSignal V5 implements a cutting-edge Hugging Face cognitive architecture that elevates streaming site discovery to autonomous cloud intelligence:
 
 ### Core Components
 
-- **Signal Scout V3**: Scrapy-based cognitive crawler with AI classification engine
+- **Signal Scout V5**: Scrapy-based cognitive crawler with Hugging Face LLM integration engine
 - **AI Classifier ("The Judge")**: Machine learning-powered content analysis and site classification  
 - **V2 Verification Pipeline**: Multi-stage verification with confidence scoring and failure tolerance
 - **Sideline App**: Real-time monitoring web application with concurrent status checking
 - **Shared Database**: SQLite-based data persistence with autonomous lifecycle management
 
-### Revolutionary V3 Features
+### Revolutionary V5 Features
 
-**🧠 AI-Powered Content Classification**
-- Real-time machine learning analysis of page content
-- Sports and streaming keyword density analysis
-- Technical streaming element detection (video tags, iframes, JavaScript players)
-- Confidence-based decision making with transparent reasoning
+**🧠 Hugging Face Cloud Cognitive Analysis**:
+- Professional cloud-based LLM analysis with meta-llama/Llama-3.1-8B-Instruct
+- Real-time machine learning analysis combined with advanced language model reasoning
+- Sports and streaming keyword density analysis enhanced with contextual understanding
+- Technical streaming element detection with cognitive verification
+- Confidence-based decision making with detailed LLM reasoning
 
 **🕷️ Scrapy-Based Autonomous Crawler**
 - Professional-grade web crawling with Scrapy framework
@@ -275,11 +268,11 @@ SidelineSignal V3 implements a cutting-edge cognitive architecture that elevates
 - Autonomous feedback loops for continuous discovery
 - Genesis seed engine for intelligent starting points
 
-**⚡ Integrated Verification Pipeline**
-- Seamless V3→V2 verification handoff
-- Headless browser verification for dynamic content
+**⚡ Integrated Cloud Verification Pipeline**:
+- Seamless V3→Hugging Face→V2 verification handoff
+- Cloud-based cognitive analysis with professional API integration
 - Multi-criteria confidence scoring and quarantine management
-- Database lifecycle management with failure tracking
+- Database lifecycle management with enhanced LLM metadata
 
 ## Architecture
 
