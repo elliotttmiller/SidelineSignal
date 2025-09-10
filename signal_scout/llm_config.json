@@ -1,0 +1,20 @@
+{
+  "llm_settings": {
+    "api_url": "http://localhost:1234/v1",
+    "model_name": "local-model",
+    "api_key": "lm-studio",
+    "max_tokens": 500,
+    "temperature": 0.1,
+    "timeout": 30
+  },
+  "v4_integration": {
+    "v3_confidence_threshold": 0.7,
+    "enable_llm_verification": true,
+    "llm_verification_timeout": 30
+  },
+  "prompt_engineering": {
+    "system_role": "expert web content analyst",
+    "require_json_response": true,
+    "use_few_shot_learning": true
+  }
+}

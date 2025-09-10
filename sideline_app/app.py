@@ -21,9 +21,9 @@ def load_sites_from_database():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
-        # Query for active sites including source field
-        cursor.execute("SELECT name, url, source FROM sites WHERE is_active = 1")
-        sites = [{"name": row[0], "url": row[1], "source": row[2]} for row in cursor.fetchall()]
+        # Query for active sites including new V4 LLM fields
+        cursor.execute("SELECT name, url, source, category, llm_verified FROM sites WHERE is_active = 1")
+        sites = [{"name": row[0], "url": row[1], "source": row[2], "category": row[3], "llm_verified": row[4]} for row in cursor.fetchall()]
         
         conn.close()
         
@@ -34,18 +34,18 @@ def load_sites_from_database():
             print("No active sites found in database, using fallback configuration")
             # Fallback to default configuration if no sites in database
             return [
-                {"name": "Google", "url": "https://www.google.com", "source": "fallback"},
-                {"name": "iMethStreams", "url": "https://imethstreams.app", "source": "fallback"},
-                {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com", "source": "fallback"}
+                {"name": "Google", "url": "https://www.google.com", "source": "fallback", "category": None, "llm_verified": None},
+                {"name": "iMethStreams", "url": "https://imethstreams.app", "source": "fallback", "category": None, "llm_verified": None},
+                {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com", "source": "fallback", "category": None, "llm_verified": None}
             ]
             
     except Exception as e:
         print(f"Error loading sites from database: {e}")
         # Fallback to default configuration
         return [
-            {"name": "Google", "url": "https://www.google.com", "source": "fallback"},
-            {"name": "iMethStreams", "url": "https://imethstreams.app", "source": "fallback"},
-            {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com", "source": "fallback"}
+            {"name": "Google", "url": "https://www.google.com", "source": "fallback", "category": None, "llm_verified": None},
+            {"name": "iMethStreams", "url": "https://imethstreams.app", "source": "fallback", "category": None, "llm_verified": None},
+            {"name": "Non-existent Domain", "url": "https://this-is-a-non-existent-domain12345.com", "source": "fallback", "category": None, "llm_verified": None}
         ]
 
 def log_status_change(url, old_status, new_status, reason):
@@ -67,7 +67,7 @@ def check_website_status(site_config):
     Check the status of a website with enriched data collection.
     
     Args:
-        site_config (dict): Dictionary containing 'name', 'url', and 'source' keys
+        site_config (dict): Dictionary containing 'name', 'url', 'source', 'category', and 'llm_verified' keys
         
     Returns:
         dict: Dictionary containing enriched status information
@@ -75,6 +75,8 @@ def check_website_status(site_config):
     name = site_config['name']
     url = site_config['url']
     source = site_config.get('source', 'unknown')
+    category = site_config.get('category', None)
+    llm_verified = site_config.get('llm_verified', None)
     
     start_time = time.time()
     status_code = 0
@@ -144,6 +146,8 @@ def check_website_status(site_config):
         'name': name,
         'url': url,
         'source': source,
+        'category': category,
+        'llm_verified': llm_verified,
         'status': status,
         'status_code': status_code,
         'response_time': response_time,
@@ -175,6 +179,8 @@ def api_statuses():
                     'name': site.get('name', 'Unknown'),
                     'url': site.get('url', ''),
                     'source': site.get('source', 'unknown'),
+                    'category': site.get('category', None),
+                    'llm_verified': site.get('llm_verified', None),
                     'status': 'Offline',
                     'status_code': 0,
                     'response_time': 10000,

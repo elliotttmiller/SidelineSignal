@@ -108,6 +108,88 @@ main {
     font-weight: 500;
 }
 
+/* V4 Category Badge Styles */
+.category-column {
+    text-align: center;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    position: relative;
+}
+
+/* Category-specific colors */
+.category-sports-streaming {
+    background: #28a745;
+    color: #fff;
+}
+
+.category-general-streaming {
+    background: #17a2b8;
+    color: #fff;
+}
+
+.category-sports-news {
+    background: #fd7e14;
+    color: #fff;
+}
+
+.category-general-news {
+    background: #6f42c1;
+    color: #fff;
+}
+
+.category-ecommerce {
+    background: #ffc107;
+    color: #000;
+}
+
+.category-social-media {
+    background: #e83e8c;
+    color: #fff;
+}
+
+.category-other {
+    background: #6c757d;
+    color: #fff;
+}
+
+.category-unknown {
+    background: #343a40;
+    color: #adb5bd;
+}
+
+/* V4 LLM Verification indicator */
+.llm-verified {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.8rem;
+    opacity: 0.9;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 0.6; }
+}
+
+/* Enhanced badges for LLM verified sites */
+.category-verified {
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.category-analyzed {
+    opacity: 0.8;
+}
+
 /* Status indicator styles - Core Protocol compliance */
 .status-operational {
     color: #28a745;

@@ -1,8 +1,136 @@
-# SidelineSignal V3 - Cognitive Autonomous Streaming Discovery System
+# SidelineSignal V4 - Hybrid Intelligence Streaming Discovery System
 
-**Professional V3 Operational Manual - AI-Powered Scrapy Architecture**
+**Professional V4 Operational Manual - AI + LLM Cognitive Architecture**
 
-SidelineSignal V3 represents the evolution of autonomous streaming site discovery, featuring a sophisticated AI-powered cognitive crawler built on Scrapy architecture. This system combines machine learning classification with intelligent link analysis to autonomously discover, classify, and verify streaming sites with minimal human intervention.
+SidelineSignal V4 represents the pinnacle evolution of autonomous streaming site discovery, featuring a revolutionary **Hybrid Intelligence** engine that combines traditional AI classification with state-of-the-art Large Language Model cognitive verification. This system implements a sophisticated V3→V4→V2 triage funnel for unparalleled accuracy in streaming site identification and verification.
+
+## V4.0 - Hybrid Intelligence Setup
+
+**🧠 LM Studio Integration for Cognitive Verification**
+
+SidelineSignal V4 integrates with LM Studio to provide advanced cognitive analysis as the final verification stage. The LLM serves as an expert analyst, performing deep contextual verification and autonomous data enrichment.
+
+### LM Studio Installation and Configuration
+
+1. **Install LM Studio**:
+   ```bash
+   # Download from: https://lmstudio.ai/
+   # Install and launch LM Studio
+   ```
+
+2. **Download a Recommended Model**:
+   - **Recommended**: Llama 2 7B Chat or similar 7B parameter model
+   - **Alternative**: Any chat-optimized model with good reasoning capabilities
+   - Ensure the model supports structured JSON output
+
+3. **Start LM Studio Server**:
+   ```bash
+   # In LM Studio:
+   # 1. Load your chosen model
+   # 2. Go to "Local Server" tab
+   # 3. Start server (default: http://localhost:1234)
+   # 4. Verify server is running at http://localhost:1234/v1
+   ```
+
+4. **Configure SidelineSignal V4**:
+   ```bash
+   # Edit signal_scout/llm_config.json to match your setup:
+   {
+     "llm_settings": {
+       "api_url": "http://localhost:1234/v1",
+       "model_name": "your-model-name",
+       "api_key": "lm-studio",
+       "max_tokens": 500,
+       "temperature": 0.1
+     },
+     "v4_integration": {
+       "v3_confidence_threshold": 0.7,
+       "enable_llm_verification": true
+     }
+   }
+   ```
+
+### V4 Hybrid Intelligence Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    SidelineSignal V4 Hybrid Intelligence            │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐   │
+│  │  Genesis Seed   │    │   V3 AI Judge   │    │  V4 LLM Analyst │   │
+│  │     Engine      │───▶│  (Classical ML) │───▶│ (Cognitive LLM) │   │
+│  │                 │    │                 │    │                 │   │
+│  │ • Query Engine  │    │ • Feature Ext.  │    │ • Deep Analysis │   │
+│  │ • URL Discovery │    │ • TF-IDF        │    │ • JSON Parsing  │   │
+│  │ • Seed Ranking  │    │ • Confidence    │    │ • Enrichment    │   │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘   │
+│           │                        │                        │        │
+│           ▼                        ▼                        ▼        │
+│  ┌─────────────────────────────────────────────────────────────────┐ │
+│  │             V4 Triage Funnel: V3 → V4 → V2 Pipeline            │ │
+│  │                                                                 │ │
+│  │ • Probabilistic → Cognitive → Deterministic Verification       │ │
+│  │ • Multi-stage Confidence Scoring with LLM Reasoning           │ │
+│  │ • Autonomous Data Enrichment and Categorization               │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│              V4 Enhanced Database with LLM Enrichment               │
+│                                                                     │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐ │
+│  │   Site Registry │    │  LLM Metadata   │    │ Category System │ │
+│  │                 │    │                 │    │                 │ │
+│  │ • Verified URLs │    │ • LLM Verified  │    │ • Auto Categories│ │
+│  │ • V3 Confidence │    │ • Reasoning     │    │ • Service Names │ │
+│  │ • V2 Confidence │    │ • Enrichment    │    │ • Smart Tags    │ │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### V4 Operational Workflow
+
+The V4 system operates through a sophisticated **Hybrid Intelligence Triage Funnel**:
+
+1. **V3 Classical AI Analysis**: Traditional ML feature extraction and classification
+2. **V4 LLM Cognitive Verification**: Advanced reasoning and contextual analysis
+3. **V2 Technical Verification**: Final headless browser verification
+4. **Database Enrichment**: Store enhanced metadata with LLM insights
+
+**V4 Discovery Command**:
+```bash
+# Activate scout environment with V4 capabilities
+source scout_venv/bin/activate
+cd signal_scout/
+
+# Run V4 Hybrid Intelligence Discovery
+scrapy crawl scout
+
+# Monitor V4 cognitive analysis in real-time
+tail -f scout.log | grep "V4 LLM"
+```
+
+### V4 Features and Capabilities
+
+**🧠 Cognitive LLM Analysis**:
+- Expert-level content understanding and reasoning
+- Structured JSON output with confidence explanations
+- Autonomous service name extraction and categorization
+- Context-aware streaming site identification
+
+**⚡ Hybrid Intelligence Pipeline**:
+- V3 AI → V4 LLM → V2 Verification triage funnel
+- Multi-layered confidence scoring and validation
+- Autonomous data enrichment and metadata generation
+- Enhanced accuracy through cognitive verification
+
+**📊 Enhanced Monitoring Interface**:
+- Real-time category badges for discovered sites
+- LLM verification indicators with brain emoji (🧠)
+- Professional category color coding and visual hierarchy
+- V4 Hybrid Intelligence branding and enhanced UI
+
 
 ## The SidelineSignal Command Center
 

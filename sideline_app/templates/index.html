@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SidelineSignal - Real-Time Stream Status</title>
+    <title>SidelineSignal V4 - Real-Time Stream Status</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>SidelineSignal</h1>
-            <p class="subtitle">Real-Time Stream Status Monitoring</p>
+            <h1>SidelineSignal V4</h1>
+            <p class="subtitle">Hybrid Intelligence Stream Monitoring</p>
         </header>
         
         <main>
@@ -19,6 +19,7 @@
                     <thead>
                         <tr>
                             <th>Website</th>
+                            <th>Category</th>
                             <th>Status</th>
                             <th>Latency</th>
                             <th>Status Code</th>
@@ -27,7 +28,7 @@
                     <tbody>
                         <!-- Status data will be populated dynamically by JavaScript -->
                         <tr>
-                            <td colspan="4" class="loading-state">Loading...</td>
+                            <td colspan="5" class="loading-state">Loading...</td>
                         </tr>
                     </tbody>
                 </table>

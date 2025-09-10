@@ -14,7 +14,7 @@ async function fetchStatuses() {
     
     try {
         // Show loading state
-        statusTableBody.innerHTML = '<tr><td colspan="4" class="loading-state">Loading status updates...</td></tr>';
+        statusTableBody.innerHTML = '<tr><td colspan="5" class="loading-state">Loading status updates...</td></tr>';
         
         // Fetch status data from concurrent API endpoint
         const response = await fetch('/api/statuses');
@@ -32,10 +32,12 @@ async function fetchStatuses() {
             const latencyClass = getLatencyClass(site.response_time);
             const latencyText = `${site.response_time} ms`;
             const statusCodeText = getStatusCodeDisplay(site);
+            const categoryBadge = getCategoryBadge(site);
             
             tableHTML += `
                 <tr>
                     <td class="website-name">${site.name}</td>
+                    <td class="category-column">${categoryBadge}</td>
                     <td class="${statusClass}">${site.status}</td>
                     <td class="${latencyClass}">${latencyText}</td>
                     <td class="status-code">${statusCodeText}</td>
@@ -55,7 +57,7 @@ async function fetchStatuses() {
     } catch (error) {
         console.error('Error fetching statuses:', error);
         // Show error state
-        statusTableBody.innerHTML = '<tr><td colspan="4" class="error-state">Error loading status data. Retrying...</td></tr>';
+        statusTableBody.innerHTML = '<tr><td colspan="5" class="error-state">Error loading status data. Retrying...</td></tr>';
     } finally {
         isLoading = false;
     }
@@ -72,6 +74,54 @@ function getLatencyClass(responseTime) {
     } else {
         return 'latency-slow';
     }
+}
+
+/**
+ * Creates a category badge for V4 LLM-verified sites
+ */
+function getCategoryBadge(site) {
+    if (!site.category) {
+        return '<span class="category-badge category-unknown">Unknown</span>';
+    }
+    
+    let badgeClass = 'category-badge ';
+    let badgeText = site.category;
+    let verifiedIcon = '';
+    
+    // Add LLM verification indicator
+    if (site.llm_verified === true) {
+        verifiedIcon = ' <span class="llm-verified" title="Verified by V4 Hybrid Intelligence">🧠</span>';
+        badgeClass += 'category-verified ';
+    } else if (site.llm_verified === false) {
+        badgeClass += 'category-analyzed ';
+    }
+    
+    // Category-specific styling
+    switch (site.category) {
+        case 'Sports Streaming':
+            badgeClass += 'category-sports-streaming';
+            break;
+        case 'General Streaming':
+            badgeClass += 'category-general-streaming';
+            break;
+        case 'Sports News':
+            badgeClass += 'category-sports-news';
+            break;
+        case 'General News':
+            badgeClass += 'category-general-news';
+            break;
+        case 'E-commerce':
+            badgeClass += 'category-ecommerce';
+            break;
+        case 'Social Media':
+            badgeClass += 'category-social-media';
+            break;
+        default:
+            badgeClass += 'category-other';
+            break;
+    }
+    
+    return `<span class="${badgeClass}">${badgeText}${verifiedIcon}</span>`;
 }
 
 /**
@@ -99,11 +149,11 @@ function updatePageTitle(statuses) {
     const offlineCount = statuses.filter(site => site.status === 'Offline').length;
     
     if (offlineCount === 0) {
-        document.title = 'SidelineSignal (All Systems Operational)';
+        document.title = 'SidelineSignal V4 (All Systems Operational)';
     } else if (offlineCount === 1) {
-        document.title = 'SidelineSignal (1 Service Offline)';
+        document.title = 'SidelineSignal V4 (1 Service Offline)';
     } else {
-        document.title = `SidelineSignal (${offlineCount} Services Offline)`;
+        document.title = `SidelineSignal V4 (${offlineCount} Services Offline)`;
     }
 }
 
@@ -129,7 +179,7 @@ function initializeRealTimePolling() {
     // Set up autonomous 15-second polling loop
     setInterval(fetchStatuses, 15000);
     
-    console.log('SidelineSignal: Real-time autonomous monitoring initialized');
+    console.log('SidelineSignal V4: Hybrid Intelligence monitoring initialized');
 }
 
 // Initialize when the DOM is ready
