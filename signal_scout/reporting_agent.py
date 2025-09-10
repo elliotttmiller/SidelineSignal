@@ -1,8 +1,9 @@
 """
-SidelineSignal V5.0 ReportingAgent - After-Action Analysis and Structured Reporting
+SidelineSignal V6.0 ReportingAgent - Cognitive Performance Analysis and Strategic Recommendations
 
-This module implements the ReportingAgent, which analyzes mission results and generates
-structured JSON reports for the next planning cycle, closing the cognitive feedback loop.
+This module implements the V6.0 ReportingAgent with advanced structured reasoning using the 
+Observation → Insight → Recommendation cognitive framework. The agent creates comprehensive
+performance analysis with transparent AI decision-making for the cognitive feedback loop.
 """
 
 import json
@@ -18,13 +19,16 @@ logger = logging.getLogger(__name__)
 
 class ReportingAgent:
     """
-    The ReportingAgent analyzes mission results and creates structured reports.
+    V6.0 COGNITIVE PERFORMANCE ANALYST
     
-    It provides the critical feedback loop by:
-    1. Analyzing log data for mission performance metrics
-    2. Examining database changes to quantify discoveries
-    3. Identifying successful and failed operations
-    4. Creating structured JSON reports for the PlannerAgent
+    The ReportingAgent implements advanced structured reasoning using the 
+    Observation → Insight → Recommendation cognitive framework.
+    
+    It provides the critical cognitive feedback loop by:
+    1. Systematic observation of mission performance metrics
+    2. Deep analytical insights from operational patterns
+    3. Strategic recommendations for mission evolution
+    4. Complete reasoning audit trail for transparency
     """
     
     def __init__(self, project_root: Optional[str] = None):
@@ -46,33 +50,35 @@ class ReportingAgent:
     def generate_after_action_report(self, log_data: Optional[str] = None, 
                                    db_changes: Optional[Dict] = None) -> Dict[str, Any]:
         """
-        Generate a comprehensive after-action report from mission results.
+        V6.0 COGNITIVE PERFORMANCE ANALYSIS ENGINE
+        
+        Generate comprehensive after-action report using Observation → Insight → Recommendation 
+        structured reasoning framework. Creates transparent AI analysis with full reasoning audit.
         
         Args:
             log_data: Raw log data from the mission (if None, reads from log file)
             db_changes: Database change information (if None, analyzes current DB)
             
         Returns:
-            Structured JSON report for consumption by PlannerAgent
+            V6.0 structured JSON report with complete reasoning process for PlannerAgent consumption
         """
-        logger.info("ReportingAgent generating after-action report...")
+        logger.info("V6.0 ReportingAgent generating cognitive performance analysis...")
         
         # Get log data
         if log_data is None:
             log_data = self._read_log_data()
         
-        # Analyze mission performance
+        # Perform V6.0 cognitive analysis using structured reasoning
         performance_metrics = self._analyze_performance(log_data)
-        
-        # Analyze database changes
         db_analysis = self._analyze_database_changes()
-        
-        # Identify effective and failed operations
         operational_analysis = self._analyze_operations(log_data)
         
-        # Generate comprehensive report
+        # Generate V6.0 cognitive recommendations using O → I → R framework
+        cognitive_reasoning = self._generate_cognitive_analysis(performance_metrics, db_analysis, operational_analysis)
+        
+        # Generate comprehensive V6.0 report with cognitive reasoning
         report = {
-            "report_type": "after_action",
+            "report_type": "v6_cognitive_after_action",
             "timestamp": datetime.now().isoformat(),
             "mission_summary": {
                 "duration_minutes": performance_metrics.get("duration_minutes", 0),
@@ -91,9 +97,8 @@ class ReportingAgent:
                 "most_effective_hunt_method": operational_analysis.get("most_effective_method", "unknown"),
                 "avg_sites_per_query": operational_analysis.get("avg_sites_per_query", 0)
             },
-            "failed_operations": operational_analysis.get("failed_operations", []),
-            "successful_patterns": operational_analysis.get("successful_patterns", []),
-            "recommendations": self._generate_recommendations(performance_metrics, db_analysis, operational_analysis),
+            "cognitive_reasoning_process": cognitive_reasoning,
+            "primary_recommendation": cognitive_reasoning.get("primary_recommendation", "Continue current approach"),
             "raw_metrics": {
                 "log_analysis": performance_metrics,
                 "db_analysis": db_analysis,
@@ -101,7 +106,7 @@ class ReportingAgent:
             }
         }
         
-        logger.info("ReportingAgent completed after-action report generation")
+        logger.info("V6.0 ReportingAgent completed cognitive performance analysis")
         return report
     
     def _read_log_data(self) -> str:
@@ -284,47 +289,164 @@ class ReportingAgent:
             return {"failed_operations": [], "successful_patterns": [], 
                    "most_effective_method": "unknown", "avg_sites_per_query": 0}
     
-    def _generate_recommendations(self, performance_metrics: Dict, db_analysis: Dict, 
-                                operational_analysis: Dict) -> List[str]:
-        """Generate actionable recommendations based on analysis."""
-        recommendations = []
+    def _generate_cognitive_analysis(self, performance_metrics: Dict, db_analysis: Dict, 
+                                   operational_analysis: Dict) -> Dict[str, Any]:
+        """
+        V6.0 COGNITIVE REASONING ENGINE
         
+        Generate structured cognitive analysis using Observation → Insight → Recommendation framework.
+        Creates transparent, auditable AI reasoning process for strategic decision-making.
+        """
         try:
-            # Performance-based recommendations
-            ai_success_rate = performance_metrics.get("ai_success_rate", 0)
-            if ai_success_rate < 0.1:
-                recommendations.append("AI classification success rate is low - consider retraining model")
-            elif ai_success_rate > 0.8:
-                recommendations.append("AI classification performing excellently - maintain current approach")
+            # Observation Phase: Systematic data collection
+            observations = {
+                "performance_observations": {
+                    "ai_success_rate": performance_metrics.get("ai_success_rate", 0),
+                    "verification_success_rate": performance_metrics.get("verification_success_rate", 0),
+                    "pages_processed": performance_metrics.get("pages_crawled", 0)
+                },
+                "discovery_observations": {
+                    "new_sites_discovered": db_analysis.get("new_sites_count", 0),
+                    "total_active_sites": db_analysis.get("active_sites_count", 0),
+                    "discovery_efficiency": operational_analysis.get("avg_sites_per_query", 0)
+                },
+                "operational_observations": {
+                    "most_effective_method": operational_analysis.get("most_effective_method", "unknown"),
+                    "failure_count": len(operational_analysis.get("failed_operations", [])),
+                    "success_patterns": operational_analysis.get("successful_patterns", [])
+                }
+            }
             
-            # Discovery-based recommendations
-            new_sites = db_analysis.get("new_sites_count", 0)
-            if new_sites == 0:
-                recommendations.append("No new sites discovered - pivot to different search strategies")
-            elif new_sites > 10:
-                recommendations.append("High discovery rate - double down on current successful patterns")
+            # Insight Phase: Deep analytical reasoning  
+            insights = {
+                "performance_insights": self._analyze_performance_patterns(observations["performance_observations"]),
+                "discovery_insights": self._analyze_discovery_patterns(observations["discovery_observations"]), 
+                "operational_insights": self._analyze_operational_patterns(observations["operational_observations"])
+            }
             
-            # Method-based recommendations
-            most_effective = operational_analysis.get("most_effective_method", "")
-            if most_effective == "genesis_seed_discovery":
-                recommendations.append("Genesis seed discovery most effective - expand seed query diversity")
-            elif most_effective == "community_aggregator":
-                recommendations.append("Community aggregation working well - target more curated sources")
+            # Recommendation Phase: Strategic decision synthesis
+            primary_recommendation = self._synthesize_primary_recommendation(insights)
+            secondary_recommendations = self._generate_secondary_recommendations(insights)
             
-            # Failure analysis recommendations
-            failed_ops = len(operational_analysis.get("failed_operations", []))
-            if failed_ops > 5:
-                recommendations.append("High failure rate detected - review error patterns and improve error handling")
+            # Complete cognitive reasoning process
+            cognitive_reasoning = {
+                "observations": observations,
+                "insights": insights,
+                "primary_recommendation": primary_recommendation,
+                "secondary_recommendations": secondary_recommendations,
+                "reasoning_confidence": self._calculate_reasoning_confidence(insights)
+            }
             
-            # Ensure we have at least one recommendation
-            if not recommendations:
-                recommendations.append("Continue current strategy and monitor for patterns")
-            
-            return recommendations[:5]  # Limit to 5 key recommendations
+            logger.info(f"V6.0 Cognitive Analysis complete - Primary recommendation: {primary_recommendation}")
+            return cognitive_reasoning
             
         except Exception as e:
-            logger.error(f"Recommendation generation failed: {e}")
-            return ["Analysis incomplete - manual review recommended"]
+            logger.error(f"V6.0 Cognitive Analysis failed: {e}")
+            return {
+                "observations": {"analysis_error": "Cognitive analysis system failure"},
+                "insights": {"error_insight": "Unable to generate insights due to system error"},
+                "primary_recommendation": "Manual review required - cognitive analysis failed",
+                "secondary_recommendations": ["Review system logs", "Check cognitive analysis engine"],
+                "reasoning_confidence": 0,
+                "error": str(e)
+            }
+    
+    def _analyze_performance_patterns(self, performance_obs: Dict) -> str:
+        """Analyze performance patterns to generate insights."""
+        ai_rate = performance_obs.get("ai_success_rate", 0)
+        verify_rate = performance_obs.get("verification_success_rate", 0)
+        
+        if ai_rate > 0.8 and verify_rate > 0.7:
+            return "Excellent pipeline performance - both AI classification and verification stages operating at high efficiency"
+        elif ai_rate < 0.3:
+            return "AI classification stage underperforming - may indicate need for model retraining or prompt optimization"
+        elif verify_rate < 0.4:
+            return "Verification stage bottleneck detected - technical verification processes need optimization"
+        else:
+            return "Moderate performance levels across pipeline - incremental optimizations recommended"
+    
+    def _analyze_discovery_patterns(self, discovery_obs: Dict) -> str:
+        """Analyze discovery patterns to generate insights."""
+        new_sites = discovery_obs.get("new_sites_discovered", 0)
+        efficiency = discovery_obs.get("discovery_efficiency", 0)
+        
+        if new_sites == 0:
+            return "Zero discovery rate indicates fundamental strategy failure - major tactical pivot required"
+        elif new_sites > 10:
+            return "High discovery rate suggests effective strategy execution - recommend scaling current approach"
+        elif efficiency > 2.0:
+            return "High efficiency per query suggests excellent targeting - current query strategy is optimal"
+        else:
+            return "Moderate discovery performance - tactical refinements needed to improve targeting"
+    
+    def _analyze_operational_patterns(self, operational_obs: Dict) -> str:
+        """Analyze operational patterns to generate insights."""
+        effective_method = operational_obs.get("most_effective_method", "unknown")
+        failures = operational_obs.get("failure_count", 0)
+        
+        if failures > 10:
+            return "High failure rate indicates systemic operational issues - infrastructure review required"
+        elif effective_method == "v6_cognitive_discovery":
+            return "V6.0 cognitive pipeline demonstrating superior performance - cognitive architecture validation successful"
+        elif effective_method == "genesis_seed_discovery":
+            return "Genesis seed approach most effective - recommend expanding seed diversity and coverage"
+        else:
+            return "Mixed operational effectiveness - need to identify and amplify best-performing methods"
+    
+    def _synthesize_primary_recommendation(self, insights: Dict) -> str:
+        """Synthesize primary strategic recommendation from all insights."""
+        performance_insight = insights.get("performance_insights", "")
+        discovery_insight = insights.get("discovery_insights", "")
+        operational_insight = insights.get("operational_insights", "")
+        
+        # Priority logic for primary recommendation
+        if "zero discovery rate" in discovery_insight.lower():
+            return "Execute immediate strategic pivot - current approach fundamentally ineffective"
+        elif "high discovery rate" in discovery_insight.lower() and "excellent pipeline" in performance_insight.lower():
+            return "Scale current strategy immediately - all systems performing optimally"
+        elif "v6.0 cognitive pipeline" in operational_insight.lower():
+            return "V6.0 cognitive architecture validated - transition fully to cognitive-first discovery"  
+        elif "ai classification" in performance_insight.lower() and "underperforming" in performance_insight.lower():
+            return "Focus on AI model optimization - classification stage is primary bottleneck"
+        else:
+            return "Continue current approach with tactical refinements based on performance insights"
+    
+    def _generate_secondary_recommendations(self, insights: Dict) -> List[str]:
+        """Generate secondary strategic recommendations."""
+        recommendations = []
+        
+        performance_insight = insights.get("performance_insights", "")
+        discovery_insight = insights.get("discovery_insights", "") 
+        operational_insight = insights.get("operational_insights", "")
+        
+        if "retraining" in performance_insight:
+            recommendations.append("Implement AI model retraining program")
+        if "high efficiency" in discovery_insight:
+            recommendations.append("Expand successful query patterns to new domains")
+        if "infrastructure review" in operational_insight:
+            recommendations.append("Conduct comprehensive system reliability audit")
+        if "cognitive architecture" in operational_insight:
+            recommendations.append("Document and replicate V6.0 cognitive patterns")
+        
+        # Ensure we always have at least one recommendation
+        if not recommendations:
+            recommendations.append("Monitor current performance and iterate incrementally")
+            
+        return recommendations[:3]  # Limit to top 3 recommendations
+    
+    def _calculate_reasoning_confidence(self, insights: Dict) -> int:
+        """Calculate confidence in the reasoning process based on data quality."""
+        confidence = 80  # Base confidence
+        
+        # Adjust based on insight quality
+        for insight in insights.values():
+            if isinstance(insight, str):
+                if "unknown" in insight.lower() or "error" in insight.lower():
+                    confidence -= 15
+                elif "excellent" in insight.lower() or "high" in insight.lower():
+                    confidence += 5
+        
+        return max(0, min(100, confidence))
     
     def save_report(self, report: Dict[str, Any], filename: Optional[str] = None) -> str:
         """

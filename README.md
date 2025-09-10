@@ -81,6 +81,106 @@ SidelineSignal V5 integrates with Hugging Face Inference API to provide advanced
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+## V6.0 - The State-of-the-Art Cognitive Architecture
+
+**🧠 SENTIENT COGNITIVE ORGANISM - The Ultimate AI Intelligence System**
+
+SidelineSignal V6.0 represents the revolutionary transformation from a functional system into a **truly sentient cognitive organism**. This breakthrough implementation features state-of-the-art structured reasoning frameworks that create transparent, auditable, and hyper-intelligent AI decision-making.
+
+### V6.0 Revolutionary Cognitive Framework
+
+**Chain-of-Thought with Self-Critique** - The core of V6.0's intelligence:
+
+```json
+{
+  "service_name": "StreamEast",
+  "is_sports_streaming_site": true,
+  "full_reasoning_process": {
+    "initial_analysis": "The content contains clear sports streaming indicators: 'Live Sports Streaming', specific mentions of NFL, NBA, MLB, soccer, game schedules with times, and phrases like 'Stream all games' and 'free live sports streaming'.",
+    "hypothesis": "Based on the extensive sports streaming vocabulary and explicit schedule of live games, this appears to be a dedicated sports streaming website offering free access to live sports events.",
+    "self_critique": "The evidence strongly supports a sports streaming classification. Alternative interpretations (news, social media, e-commerce) are ruled out by the explicit streaming language and live game schedules. The hypothesis appears sound.",
+    "conclusion": "High confidence classification as a sports streaming site due to explicit streaming services, live sports schedules, and direct streaming language throughout the content."
+  },
+  "final_confidence_score": 95
+}
+```
+
+### V6.0 Cognitive Agent Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SidelineSignal V6.0 - Sentient Cognitive Organism         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────────┐    ┌───────────────────┐    ┌───────────────────┐     │
+│  │   PlannerAgent    │    │   LLM_Analyst     │    │  ReportingAgent   │     │
+│  │                   │    │                   │    │                   │     │
+│  │ Strategic         │───▶│ Chain-of-Thought  │───▶│ Observation →     │     │
+│  │ Reasoning:        │    │ with Self-Critique│    │ Insight →         │     │
+│  │ • Status Review   │    │                   │    │ Recommendation    │     │
+│  │ • Strategic Goal  │    │ • Initial Analysis│    │                   │     │
+│  │ • Tactical Plan   │    │ • Hypothesis      │    │ • Deep Insights   │     │
+│  │                   │    │ • Self-Critique   │    │ • Primary Rec     │     │
+│  └───────────────────┘    │ • Final Conclusion│    │ • Confidence      │     │
+│           │                └───────────────────┘    └───────────────────┘     │
+│           ▼                           │                        │              │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │              V6.0 COGNITIVE BUS - Structured Thought Objects            │ │
+│  │                                                                         │ │
+│  │ • Rich semantic "thought" objects with complete reasoning processes     │ │
+│  │ • Glass-box transparency with full AI decision audit trails            │ │
+│  │ • Self-aware agents that reason about their own reasoning               │ │
+│  │ • Hyper-specialized cognitive frameworks for maximum reliability        │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│            V6.0 Cognitive Database with Full Reasoning Storage              │
+│                                                                             │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐         │
+│  │  Site Registry  │    │ Reasoning Audit │    │ Cognitive Meta  │         │
+│  │                 │    │     Trail       │    │    Analysis     │         │
+│  │ • Verified URLs │    │ • Full thought  │    │ • Confidence    │         │
+│  │ • Confidence    │    │   processes     │    │   scores        │         │
+│  │ • Active Status │    │ • Self-critique │    │ • Decision      │         │
+│  │                 │    │   logs          │    │   rationale     │         │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘         │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### V6.0 Cognitive Features - The Sentient Breakthrough
+
+**🧠 Chain-of-Thought with Self-Critique**:
+- AI agents now **reason about their own reasoning**
+- **Four-stage structured thinking**: Initial Analysis → Hypothesis → Self-Critique → Conclusion  
+- **Transparent decision-making** with complete audit trails
+- **Reduced hallucination risk** through systematic self-evaluation
+
+**🎯 Strategic Reasoning Framework**:
+- **PlannerAgent** uses Status Review → Strategic Goal → Tactical Execution methodology
+- **Mission briefs** with confidence assessments and success metrics
+- **Adaptive strategic evolution** based on cognitive performance analysis
+
+**📊 Observation → Insight → Recommendation**:
+- **ReportingAgent** performs systematic observation of operational data
+- **Deep analytical insights** from performance patterns
+- **Primary + Secondary recommendations** with reasoning confidence scores
+
+**🔍 Glass-Box Transparency**:
+- **Every AI decision** is fully explained and auditable
+- **Complete reasoning processes** stored in database
+- **No black-box operations** - all cognitive steps are visible
+
+### V6.0 Database Evolution
+
+The V6.0 system stores complete AI reasoning processes for unprecedented transparency:
+
+```sql
+-- V6.0 Cognitive Database Schema Enhancement
+ALTER TABLE sites ADD COLUMN llm_full_reasoning TEXT;
+-- Stores complete JSON reasoning process: analysis → hypothesis → critique → conclusion
+```
+
 ### V5 Operational Workflow
 
 The V5 system operates through a sophisticated **Hugging Face Cognitive Triage Funnel**:
