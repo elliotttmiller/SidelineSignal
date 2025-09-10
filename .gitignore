@@ -51,6 +51,7 @@ Thumbs.db
 
 # V3 Scrapy and ML specific
 *.log
+scout.log
 .scrapy/
 *.pkl.tmp
 training_temp/
