@@ -29,6 +29,8 @@ instance/
 .venv
 env/
 venv/
+scout_venv/
+app_venv/
 ENV/
 env.bak/
 venv.bak/
