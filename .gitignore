@@ -48,3 +48,15 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# V3 Scrapy and ML specific
+*.log
+.scrapy/
+*.pkl.tmp
+training_temp/
+model_cache/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
